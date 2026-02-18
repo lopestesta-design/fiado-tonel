@@ -1,0 +1,9 @@
+{
+  "name": "Tonel 333 - Controle de Fiado",
+  "short_name": "Tonel 333",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait"
+}
