@@ -197,6 +197,17 @@ function mostrar(){
 
 carregar();
 
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(function() {
+      console.log('Service Worker registrado com sucesso');
+    })
+    .catch(function(erro) {
+      console.log('Erro ao registrar o Service Worker:', erro);
+    });
+}
 </script>
+  
 </body>
 </html>
