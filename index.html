@@ -65,17 +65,15 @@ button {
 <input type="text" id="nome" placeholder="Nome do Cliente">
 <input type="tel" id="telefone" placeholder="Telefone">
 
-  <button type="button" class="btn-add" onclick="adicionarCliente()">Adicionar Cliente</button>
+<button type="button" class="btn-add" onclick="adicionarCliente()">Adicionar Cliente</button>
 
 <div id="listaClientes"></div>
 
 <script>
 
-let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+alert("JS funcionando");
 
-function salvar() {
-  localStorage.setItem('clientes', JSON.stringify(clientes));
-}
+let clientes = [];
 
 function adicionarCliente() {
   let nome = document.getElementById('nome').value.trim();
@@ -92,9 +90,9 @@ function adicionarCliente() {
     divida: 0
   });
 
-  salvar();
   document.getElementById('nome').value = "";
   document.getElementById('telefone').value = "";
+
   atualizarLista();
 }
 
@@ -102,48 +100,16 @@ function atualizarLista() {
   let lista = document.getElementById('listaClientes');
   lista.innerHTML = "";
 
-  clientes.forEach((cliente, index) => {
+  clientes.forEach((cliente) => {
     lista.innerHTML += `
       <div class="cliente">
         <strong>${cliente.nome}</strong><br>
         Telefone: ${cliente.telefone}<br>
         Dívida: R$ ${cliente.divida.toFixed(2)}
-        <br><br>
-        <button onclick="adicionarDivida(${index})">Adicionar Consumo</button>
-        <button onclick="pagar(${index})">Pagamento</button>
-        <button class="btn-whats" onclick="whats(${index})">WhatsApp</button>
       </div>
     `;
   });
 }
-
-function adicionarDivida(index) {
-  let valor = prompt("Valor do consumo:");
-  if(valor && !isNaN(valor)) {
-    clientes[index].divida += parseFloat(valor);
-    salvar();
-    atualizarLista();
-  }
-}
-
-function pagar(index) {
-  let valor = prompt("Valor do pagamento:");
-  if(valor && !isNaN(valor)) {
-    clientes[index].divida -= parseFloat(valor);
-    if(clientes[index].divida < 0) clientes[index].divida = 0;
-    salvar();
-    atualizarLista();
-  }
-}
-
-function whats(index) {
-  let cliente = clientes[index];
-  let mensagem = `Olá ${cliente.nome}, sua dívida é R$ ${cliente.divida.toFixed(2)}.`;
-  let url = `https://wa.me/55${cliente.telefone}?text=${encodeURIComponent(mensagem)}`;
-  window.open(url, '_blank');
-}
-
-atualizarLista();
 
 </script>
 
