@@ -1,229 +1,176 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Tonel 333 - Controle de Fiado</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f172a">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiado Tonel 333</title>
 
 <style>
-* { box-sizing: border-box; }
-
-body {
-  font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: #f8fafc;
-  margin: 0;
-  padding: 30px;
-  font-size: 36px; /* corpo gigante */
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 50px;
-  font-size: 44px;
-}
-
-h3 {
-  margin-top: 50px;
-  margin-bottom: 25px;
-  font-size: 36px;
-  color: #94a3b8;
-}
-
-input, select {
-  width: 100%;
-  padding: 30px;
-  margin: 12px 0 20px 0;
-  border-radius: 20px;
-  border: 1px solid #334155;
-  background: #1e293b;
-  color: #ffffff;
-  font-size: 36px;
-}
-
-button {
-  width: 100%;
-  padding: 36px;
-  margin-top: 18px;
-  border-radius: 20px;
-  border: none;
-  font-weight: bold;
-  font-size: 36px;
-  cursor: pointer;
-}
-
-button:active { transform: scale(0.97); }
-
-.btn-consumo { background: #dc2626; color: white; }
-.btn-pagamento { background: #16a34a; color: white; }
-.btn-whats { background: #25D366; color: black; margin-top: 18px; }
-
+body { font-family: Arial; background:#111; color:#fff; padding:20px; }
+h1 { color:#ffcc00; }
+input, select, button { margin:5px; padding:8px; }
 .cliente {
-  background: #1e293b;
-  padding: 36px;
-  margin-top: 30px;
-  border-radius: 24px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-  overflow-x: auto;
+  background:#222;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:8px;
 }
-
-.saldo {
-  font-weight: bold;
-  color: #facc15;
-  font-size: 40px;
-  margin-top: 12px;
-}
-
-/* Media query para telas pequenas */
-@media (max-width: 600px) {
-  body { padding: 25px; font-size: 32px; }
-  h2 { font-size: 40px; }
-  h3 { font-size: 34px; }
-  input, select { font-size: 32px; padding: 28px; }
-  button { font-size: 32px; padding: 32px; }
-  .saldo { font-size: 36px; }
-  .cliente { padding: 32px; }
-}
+.saldo { font-size:18px; margin-top:5px; }
+.btn-whats { background:green; color:white; border:none; cursor:pointer; }
+.alerta { background:#ffe6e6; color:#000; }
+.total { font-size:20px; margin-bottom:20px; color:#ffcc00; }
 </style>
 </head>
 
 <body>
 
-<h2>Tonel 333 - Controle de Fiado</h2>
+<h1>Fiado Tonel 333</h1>
 
-<h3>Cadastrar Cliente</h3>
+<div class="total" id="totalGeral"></div>
+
+<h3>Novo Cliente</h3>
 <input type="text" id="nome" placeholder="Nome">
-<input type="text" id="telefone" placeholder="Telefone 5511999999999">
-<button onclick="cadastrar()">Cadastrar</button>
+<input type="text" id="telefone" placeholder="Telefone (somente números)">
+<select id="categoria">
+  <option value="fiado">Fiado (Limite 200)</option>
+  <option value="mensal">Conta Mensal</option>
+</select>
+<button onclick="adicionarCliente()">Adicionar</button>
 
-<h3>Movimentação</h3>
-<select id="clienteSelect"></select>
-<input type="number" id="valor" placeholder="Valor">
-<button class="btn-consumo" onclick="adicionarConsumo()">Adicionar Consumo</button>
-<button class="btn-pagamento" onclick="registrarPagamento()">Registrar Pagamento</button>
+<hr>
 
-<h3>Clientes</h3>
 <div id="lista"></div>
 
 <script>
+
 let clientes = [];
 
 function salvar(){
   localStorage.setItem("clientes", JSON.stringify(clientes));
-  mostrar();
-  atualizarSelect();
 }
 
 function carregar(){
-  clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+  let dados = localStorage.getItem("clientes");
+  if(dados){
+    clientes = JSON.parse(dados);
+  }
   mostrar();
-  atualizarSelect();
 }
 
-function cadastrar(){
+function adicionarCliente(){
   let nome = document.getElementById("nome").value;
   let telefone = document.getElementById("telefone").value;
-  if(nome === "" || telefone === ""){
-    alert("Preencha todos os campos");
+  let categoria = document.getElementById("categoria").value;
+
+  let limite = categoria === "mensal" ? 800 : 200;
+
+  clientes.push({
+    nome,
+    telefone,
+    categoria,
+    limite,
+    saldo: 0,
+    historico: []
+  });
+
+  salvar();
+  mostrar();
+}
+
+function registrarConsumo(i){
+  let valor = parseFloat(prompt("Valor do consumo:"));
+  if(isNaN(valor)) return;
+
+  if(clientes[i].saldo + valor > clientes[i].limite){
+    alert("Limite excedido! Necessário pagamento parcial.");
     return;
   }
-  clientes.push({ nome: nome, telefone: telefone, saldo: 0, historico: [] });
-  document.getElementById("nome").value="";
-  document.getElementById("telefone").value="";
+
+  clientes[i].saldo += valor;
+
+  clientes[i].historico.push({
+    data: new Date().toLocaleDateString(),
+    tipo: "Consumo",
+    valor
+  });
+
   salvar();
+  mostrar();
 }
 
-function atualizarSelect(){
-  let select = document.getElementById("clienteSelect");
-  select.innerHTML = "";
-  for(let i=0; i<clientes.length; i++){
-    select.innerHTML += "<option value='" + clientes[i].nome + "'>" + clientes[i].nome + "</option>";
-  }
-}
+function registrarPagamento(i){
+  let valor = parseFloat(prompt("Valor do pagamento:"));
+  if(isNaN(valor)) return;
 
-function adicionarConsumo(){
-  let nome = document.getElementById("clienteSelect").value;
-  let valor = parseFloat(document.getElementById("valor").value);
-  if(!valor){ alert("Digite um valor"); return; }
-  for(let i=0; i<clientes.length; i++){
-    if(clientes[i].nome === nome){
-      clientes[i].saldo += valor;
-      clientes[i].historico.push({ data: new Date().toLocaleDateString(), tipo: "Consumo", valor: valor });
-    }
-  }
-  document.getElementById("valor").value="";
+  clientes[i].saldo -= valor;
+
+  clientes[i].historico.push({
+    data: new Date().toLocaleDateString(),
+    tipo: "Pagamento",
+    valor
+  });
+
   salvar();
+  mostrar();
 }
 
-function registrarPagamento(){
-  let nome = document.getElementById("clienteSelect").value;
-  let valor = parseFloat(document.getElementById("valor").value);
-  if(!valor){ alert("Digite um valor"); return; }
-  for(let i=0; i<clientes.length; i++){
-    if(clientes[i].nome === nome){
-      clientes[i].saldo -= valor;
-      if(clientes[i].saldo < 0){ clientes[i].saldo = 0; }
-      clientes[i].historico.push({ data: new Date().toLocaleDateString(), tipo: "Pagamento", valor: valor });
-    }
-  }
-  document.getElementById("valor").value="";
-  salvar();
-}
+function enviarWhatsApp(i){
+  let cliente = clientes[i];
 
-function enviarWhatsApp(index){
-  let cliente = clientes[index];
-  let telefone = cliente.telefone.replace(/\D/g, "");
-  let mensagem = "Extrato - Tonel 333\n\n";
-  for(let i=0; i<cliente.historico.length; i++){
-    mensagem += cliente.historico[i].data + " - " + cliente.historico[i].tipo + " - R$ " + cliente.historico[i].valor.toFixed(2) + "\n";
-  }
-  mensagem += "\nSaldo atual: R$ " + cliente.saldo.toFixed(2);
-  let url = "https://api.whatsapp.com/send?phone=" + telefone + "&text=" + encodeURIComponent(mensagem);
-  window.open(url, "_blank");
+  let mensagem =
+`🍺 Tonel 333 Rock Sambar
+
+Olá ${cliente.nome}!
+Seu saldo atual é R$ ${cliente.saldo.toFixed(2)}.
+
+Segue PIX para pagamento:
+SUA_CHAVE_PIX_AQUI
+
+Obrigado pela parceria 🙏`;
+
+  let url = "https://wa.me/55" + cliente.telefone + "?text=" + encodeURIComponent(mensagem);
+  window.open(url, '_blank');
 }
 
 function mostrar(){
   let lista = document.getElementById("lista");
+  let total = 0;
   lista.innerHTML = "";
+
   for(let i=0; i<clientes.length; i++){
+
+    total += clientes[i].saldo;
+
     let extrato = "";
     for(let j=0; j<clientes[i].historico.length; j++){
-      extrato += clientes[i].historico[j].data + " - " + clientes[i].historico[j].tipo + " - R$ " + clientes[i].historico[j].valor.toFixed(2) + "<br>";
+      extrato += clientes[i].historico[j].data + " - " +
+                 clientes[i].historico[j].tipo + " - R$ " +
+                 clientes[i].historico[j].valor.toFixed(2) + "<br>";
     }
+
+    let classe = clientes[i].saldo > clientes[i].limite ? "cliente alerta" : "cliente";
+
     lista.innerHTML +=
-      "<div class='cliente'>" +
+      "<div class='"+classe+"'>" +
       "<b>" + clientes[i].nome + "</b><br>" +
       "Telefone: " + clientes[i].telefone + "<br>" +
+      "Categoria: " + clientes[i].categoria + "<br>" +
+      "Limite: R$ " + clientes[i].limite.toFixed(2) + "<br>" +
       "<div class='saldo'>Saldo: R$ " + clientes[i].saldo.toFixed(2) + "</div>" +
-      "<br><b>Histórico:</b><br>" +
+      "<br><button onclick='registrarConsumo("+i+")'>Adicionar Consumo</button>" +
+      "<button onclick='registrarPagamento("+i+")'>Registrar Pagamento</button>" +
+      "<button class='btn-whats' onclick='enviarWhatsApp("+i+")'>Cobrar WhatsApp</button>" +
+      "<br><br><b>Histórico:</b><br>" +
       extrato +
-      "<br><button class='btn-whats' onclick='enviarWhatsApp(" + i + ")'>Enviar WhatsApp</button>" +
       "</div>";
   }
+
+  document.getElementById("totalGeral").innerHTML =
+    "💰 Total Geral em Aberto: R$ " + total.toFixed(2);
 }
 
 carregar();
-</script>
 
-<!-- Script para ignorar cache automaticamente -->
-<script>
-(function() {
-  let url = window.location.href;
-  if(!url.includes("?v=")) {
-    let v = Math.floor(Math.random() * 10000);
-    window.location.href = url + "?v=" + v;
-  }
-})();
-</script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js')
-    .then(() => console.log('Service Worker registrado'))
-    .catch(err => console.log('Erro no SW:', err));
-}
 </script>
 
 </body>
