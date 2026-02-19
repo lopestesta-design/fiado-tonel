@@ -1,102 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tonel 333 - Controle de Fiado</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
 
 <style>
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   font-family: Arial, sans-serif;
   background: #0f172a;
   color: #f8fafc;
   margin: 0;
-  padding: 36px;
-  font-size: 30px; /* corpo gigante */
+  padding: 30px;
+  font-size: 36px; /* corpo gigante */
 }
 
 h2 {
   text-align: center;
-  margin-bottom: 44px;
-  font-size: 50px; /* título principal gigante */
+  margin-bottom: 50px;
+  font-size: 44px;
 }
 
 h3 {
-  margin-top: 36px;
-  margin-bottom: 50px;
-  font-size: 25px; /* subtítulos grandes */
+  margin-top: 50px;
+  margin-bottom: 25px;
+  font-size: 36px;
   color: #94a3b8;
 }
 
 input, select {
   width: 100%;
-  padding: 25px;
+  padding: 30px;
   margin: 12px 0 20px 0;
-  border-radius: 18px;
+  border-radius: 20px;
   border: 1px solid #334155;
   background: #1e293b;
   color: #ffffff;
-  font-size: 28px; /* entrada gigante */
+  font-size: 36px;
 }
 
 button {
   width: 100%;
-  padding: 30px;
+  padding: 36px;
   margin-top: 18px;
-  border-radius: 18px;
+  border-radius: 20px;
   border: none;
   font-weight: bold;
-  font-size: 28px; /* botão gigante */
+  font-size: 36px;
   cursor: pointer;
 }
 
-button:active {
-  transform: scale(0.97);
-}
+button:active { transform: scale(0.97); }
 
-.btn-consumo {
-  background: #dc2626;
-  color: white;
-}
-
-.btn-pagamento {
-  background: #16a34a;
-  color: white;
-}
-
-.btn-whats {
-  background: #25D366;
-  color: black;
-  margin-top: 18px;
-}
+.btn-consumo { background: #dc2626; color: white; }
+.btn-pagamento { background: #16a34a; color: white; }
+.btn-whats { background: #25D366; color: black; margin-top: 18px; }
 
 .cliente {
   background: #1e293b;
-  padding: 30px;
+  padding: 36px;
   margin-top: 30px;
-  border-radius: 20px;
+  border-radius: 24px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+  overflow-x: auto;
 }
 
 .saldo {
   font-weight: bold;
   color: #facc15;
-  font-size: 32px;
+  font-size: 40px;
   margin-top: 12px;
 }
 
 /* Media query para telas pequenas */
 @media (max-width: 600px) {
-  body { padding: 20px; font-size: 26px; }
-  h2 { font-size: 32px; }
-  h3 { font-size: 28px; }
-  input, select { font-size: 26px; padding: 22px; }
-  button { font-size: 26px; padding: 26px; }
-  .saldo { font-size: 30px; }
-  .cliente { padding: 28px; }
+  body { padding: 25px; font-size: 32px; }
+  h2 { font-size: 40px; }
+  h3 { font-size: 34px; }
+  input, select { font-size: 32px; padding: 28px; }
+  button { font-size: 32px; padding: 32px; }
+  .saldo { font-size: 36px; }
+  .cliente { padding: 32px; }
 }
 </style>
 </head>
@@ -137,12 +125,10 @@ function carregar(){
 function cadastrar(){
   let nome = document.getElementById("nome").value;
   let telefone = document.getElementById("telefone").value;
-
   if(nome === "" || telefone === ""){
     alert("Preencha todos os campos");
     return;
   }
-
   clientes.push({ nome: nome, telefone: telefone, saldo: 0, historico: [] });
   document.getElementById("nome").value="";
   document.getElementById("telefone").value="";
@@ -161,7 +147,6 @@ function adicionarConsumo(){
   let nome = document.getElementById("clienteSelect").value;
   let valor = parseFloat(document.getElementById("valor").value);
   if(!valor){ alert("Digite um valor"); return; }
-
   for(let i=0; i<clientes.length; i++){
     if(clientes[i].nome === nome){
       clientes[i].saldo += valor;
@@ -176,7 +161,6 @@ function registrarPagamento(){
   let nome = document.getElementById("clienteSelect").value;
   let valor = parseFloat(document.getElementById("valor").value);
   if(!valor){ alert("Digite um valor"); return; }
-
   for(let i=0; i<clientes.length; i++){
     if(clientes[i].nome === nome){
       clientes[i].saldo -= valor;
@@ -236,7 +220,9 @@ carregar();
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log('Service Worker registrado'))
+    .catch(err => console.log('Erro no SW:', err));
 }
 </script>
 
