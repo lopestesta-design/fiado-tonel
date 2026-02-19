@@ -1,32 +1,10 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tonel 333 - Controle de Fiado</title>
+<title>Tonel 333 - Controle de Fiado</title>
 
-
-</head>
-
-<body>
-
-<h2>Tonel 333 - Controle de Fiado</h2>
-
-<h3>Cadastrar Cliente</h3>
-<input type="text" id="nome" placeholder="Nome">
-<input type="text" id="telefone" placeholder="Telefone 5511999999999">
-<button onclick="cadastrar()">Cadastrar</button>
-
-<h3>Movimentação</h3>
-<select id="clienteSelect"></select>
-<input type="number" id="valor" placeholder="Valor">
-<button class="btn-consumo" onclick="adicionarConsumo()">Adicionar Consumo</button>
-<button class="btn-pagamento" onclick="registrarPagamento()">Registrar Pagamento</button>
-
-<h3>Clientes</h3>
-<div id="lista"></div>
-
-<script>
 <style>
 * {
   box-sizing: border-box;
@@ -113,10 +91,7 @@ button:active {
 
 /* Media query para telas pequenas */
 @media (max-width: 600px) {
-  body {
-    padding: 20px;
-    font-size: 26px;
-  }
+  body { padding: 20px; font-size: 26px; }
   h2 { font-size: 32px; }
   h3 { font-size: 28px; }
   input, select { font-size: 26px; padding: 22px; }
@@ -125,6 +100,27 @@ button:active {
   .cliente { padding: 28px; }
 }
 </style>
+</head>
+
+<body>
+
+<h2>Tonel 333 - Controle de Fiado</h2>
+
+<h3>Cadastrar Cliente</h3>
+<input type="text" id="nome" placeholder="Nome">
+<input type="text" id="telefone" placeholder="Telefone 5511999999999">
+<button onclick="cadastrar()">Cadastrar</button>
+
+<h3>Movimentação</h3>
+<select id="clienteSelect"></select>
+<input type="number" id="valor" placeholder="Valor">
+<button class="btn-consumo" onclick="adicionarConsumo()">Adicionar Consumo</button>
+<button class="btn-pagamento" onclick="registrarPagamento()">Registrar Pagamento</button>
+
+<h3>Clientes</h3>
+<div id="lista"></div>
+
+<script>
 let clientes = [];
 
 function salvar(){
@@ -148,23 +144,15 @@ function cadastrar(){
     return;
   }
 
-  clientes.push({
-    nome: nome,
-    telefone: telefone,
-    saldo: 0,
-    historico: []
-  });
-
+  clientes.push({ nome: nome, telefone: telefone, saldo: 0, historico: [] });
   document.getElementById("nome").value="";
   document.getElementById("telefone").value="";
-
   salvar();
 }
 
 function atualizarSelect(){
   let select = document.getElementById("clienteSelect");
   select.innerHTML = "";
-
   for(let i=0; i<clientes.length; i++){
     select.innerHTML += "<option value='" + clientes[i].nome + "'>" + clientes[i].nome + "</option>";
   }
@@ -173,24 +161,14 @@ function atualizarSelect(){
 function adicionarConsumo(){
   let nome = document.getElementById("clienteSelect").value;
   let valor = parseFloat(document.getElementById("valor").value);
-
-  if(!valor){
-    alert("Digite um valor");
-    return;
-  }
+  if(!valor){ alert("Digite um valor"); return; }
 
   for(let i=0; i<clientes.length; i++){
     if(clientes[i].nome === nome){
       clientes[i].saldo += valor;
-
-      clientes[i].historico.push({
-        data: new Date().toLocaleDateString(),
-        tipo: "Consumo",
-        valor: valor
-      });
+      clientes[i].historico.push({ data: new Date().toLocaleDateString(), tipo: "Consumo", valor: valor });
     }
   }
-
   document.getElementById("valor").value="";
   salvar();
 }
@@ -198,28 +176,15 @@ function adicionarConsumo(){
 function registrarPagamento(){
   let nome = document.getElementById("clienteSelect").value;
   let valor = parseFloat(document.getElementById("valor").value);
-
-  if(!valor){
-    alert("Digite um valor");
-    return;
-  }
+  if(!valor){ alert("Digite um valor"); return; }
 
   for(let i=0; i<clientes.length; i++){
     if(clientes[i].nome === nome){
       clientes[i].saldo -= valor;
-
-      if(clientes[i].saldo < 0){
-        clientes[i].saldo = 0;
-      }
-
-      clientes[i].historico.push({
-        data: new Date().toLocaleDateString(),
-        tipo: "Pagamento",
-        valor: valor
-      });
+      if(clientes[i].saldo < 0){ clientes[i].saldo = 0; }
+      clientes[i].historico.push({ data: new Date().toLocaleDateString(), tipo: "Pagamento", valor: valor });
     }
   }
-
   document.getElementById("valor").value="";
   salvar();
 }
@@ -227,38 +192,23 @@ function registrarPagamento(){
 function enviarWhatsApp(index){
   let cliente = clientes[index];
   let telefone = cliente.telefone.replace(/\D/g, "");
-
   let mensagem = "Extrato - Tonel 333\n\n";
-
   for(let i=0; i<cliente.historico.length; i++){
-    mensagem += cliente.historico[i].data + " - " +
-                cliente.historico[i].tipo + " - R$ " +
-                cliente.historico[i].valor.toFixed(2) + "\n";
+    mensagem += cliente.historico[i].data + " - " + cliente.historico[i].tipo + " - R$ " + cliente.historico[i].valor.toFixed(2) + "\n";
   }
-
   mensagem += "\nSaldo atual: R$ " + cliente.saldo.toFixed(2);
-
-  let url = "https://api.whatsapp.com/send?phone=" +
-            telefone +
-            "&text=" + encodeURIComponent(mensagem);
-
+  let url = "https://api.whatsapp.com/send?phone=" + telefone + "&text=" + encodeURIComponent(mensagem);
   window.open(url, "_blank");
 }
 
 function mostrar(){
   let lista = document.getElementById("lista");
   lista.innerHTML = "";
-
   for(let i=0; i<clientes.length; i++){
-
     let extrato = "";
-
     for(let j=0; j<clientes[i].historico.length; j++){
-      extrato += clientes[i].historico[j].data + " - " +
-                 clientes[i].historico[j].tipo + " - R$ " +
-                 clientes[i].historico[j].valor.toFixed(2) + "<br>";
+      extrato += clientes[i].historico[j].data + " - " + clientes[i].historico[j].tipo + " - R$ " + clientes[i].historico[j].valor.toFixed(2) + "<br>";
     }
-
     lista.innerHTML +=
       "<div class='cliente'>" +
       "<b>" + clientes[i].nome + "</b><br>" +
@@ -272,8 +222,19 @@ function mostrar(){
 }
 
 carregar();
-
 </script>
+
+<!-- Script para ignorar cache automaticamente -->
+<script>
+(function() {
+  let url = window.location.href;
+  if(!url.includes("?v=")) {
+    let v = Math.floor(Math.random() * 10000);
+    window.location.href = url + "?v=" + v;
+  }
+})();
+</script>
+
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
