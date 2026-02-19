@@ -69,11 +69,14 @@ button {
 
 <div id="listaClientes"></div>
 
+      
 <script>
 
-alert("JS funcionando");
+let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
 
-let clientes = [];
+function salvar() {
+  localStorage.setItem('clientes', JSON.stringify(clientes));
+}
 
 function adicionarCliente() {
   let nome = document.getElementById('nome').value.trim();
@@ -90,6 +93,8 @@ function adicionarCliente() {
     divida: 0
   });
 
+  salvar();
+
   document.getElementById('nome').value = "";
   document.getElementById('telefone').value = "";
 
@@ -100,18 +105,51 @@ function atualizarLista() {
   let lista = document.getElementById('listaClientes');
   lista.innerHTML = "";
 
-  clientes.forEach((cliente) => {
+  clientes.forEach((cliente, index) => {
     lista.innerHTML += `
       <div class="cliente">
         <strong>${cliente.nome}</strong><br>
         Telefone: ${cliente.telefone}<br>
         Dívida: R$ ${cliente.divida.toFixed(2)}
+        <br><br>
+        <button onclick="adicionarDivida(${index})">Adicionar Consumo</button>
+        <button onclick="pagar(${index})">Pagamento</button>
+        <button onclick="whats(${index})">WhatsApp</button>
       </div>
     `;
   });
 }
 
+function adicionarDivida(index) {
+  let valor = prompt("Valor do consumo:");
+  if(valor && !isNaN(valor)) {
+    clientes[index].divida += parseFloat(valor);
+    salvar();
+    atualizarLista();
+  }
+}
+
+function pagar(index) {
+  let valor = prompt("Valor do pagamento:");
+  if(valor && !isNaN(valor)) {
+    clientes[index].divida -= parseFloat(valor);
+    if(clientes[index].divida < 0) clientes[index].divida = 0;
+    salvar();
+    atualizarLista();
+  }
+}
+
+function whats(index) {
+  let cliente = clientes[index];
+  let mensagem = `Olá ${cliente.nome}, sua dívida é R$ ${cliente.divida.toFixed(2)}.`;
+  let url = `https://wa.me/55${cliente.telefone}?text=${encodeURIComponent(mensagem)}`;
+  window.open(url, '_blank');
+}
+
+atualizarLista();
+
 </script>
+
 
 </body>
 </html>
