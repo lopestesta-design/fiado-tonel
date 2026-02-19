@@ -1,10 +1,8 @@
-const cacheName = 'fiado-tonel-v1';
+const cacheName = 'fiado-tonel-v2';
 const assets = [
   './',
   './index.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './manifest.json'
 ];
 
 self.addEventListener('install', e => {
