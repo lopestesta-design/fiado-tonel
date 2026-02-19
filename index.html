@@ -41,6 +41,7 @@ input, select, button { margin:5px; padding:8px; }
 
 <div id="lista"></div>
 
+
 <script>
 
 let clientes = [];
@@ -53,7 +54,21 @@ function carregar(){
   let dados = localStorage.getItem("clientes");
   if(dados){
     clientes = JSON.parse(dados);
+
+    // Corrigir clientes antigos que não têm categoria/limite
+    for(let i=0; i<clientes.length; i++){
+      if(!clientes[i].categoria){
+        clientes[i].categoria = "fiado";
+      }
+      if(!clientes[i].limite){
+        clientes[i].limite = clientes[i].categoria === "mensal" ? 800 : 200;
+      }
+      if(!clientes[i].historico){
+        clientes[i].historico = [];
+      }
+    }
   }
+  salvar();
   mostrar();
 }
 
@@ -81,14 +96,20 @@ function registrarConsumo(i){
   let valor = parseFloat(prompt("Valor do consumo:"));
   if(isNaN(valor)) return;
 
-  if(clientes[i].saldo + valor > clientes[i].limite){
-    alert("Limite excedido! Necessário pagamento parcial.");
-    return;
+  let cliente = clientes[i];
+
+  // Fiado bloqueia
+  if(cliente.categoria === "fiado"){
+    if(cliente.saldo + valor > cliente.limite){
+      alert("Limite de R$ 200 atingido! Precisa pagar antes de consumir mais.");
+      return;
+    }
   }
 
-  clientes[i].saldo += valor;
+  // Mensal não bloqueia, só acumula
+  cliente.saldo += valor;
 
-  clientes[i].historico.push({
+  cliente.historico.push({
     data: new Date().toLocaleDateString(),
     tipo: "Consumo",
     valor
@@ -139,24 +160,29 @@ function mostrar(){
 
   for(let i=0; i<clientes.length; i++){
 
-    total += clientes[i].saldo;
+    let cliente = clientes[i];
+    total += cliente.saldo;
 
     let extrato = "";
-    for(let j=0; j<clientes[i].historico.length; j++){
-      extrato += clientes[i].historico[j].data + " - " +
-                 clientes[i].historico[j].tipo + " - R$ " +
-                 clientes[i].historico[j].valor.toFixed(2) + "<br>";
+    for(let j=0; j<cliente.historico.length; j++){
+      extrato += cliente.historico[j].data + " - " +
+                 cliente.historico[j].tipo + " - R$ " +
+                 cliente.historico[j].valor.toFixed(2) + "<br>";
     }
 
-    let classe = clientes[i].saldo > clientes[i].limite ? "cliente alerta" : "cliente";
+    // Alerta visual se passar 90% do limite
+    let classe = "cliente";
+    if(cliente.saldo >= cliente.limite * 0.9){
+      classe += " alerta";
+    }
 
     lista.innerHTML +=
       "<div class='"+classe+"'>" +
-      "<b>" + clientes[i].nome + "</b><br>" +
-      "Telefone: " + clientes[i].telefone + "<br>" +
-      "Categoria: " + clientes[i].categoria + "<br>" +
-      "Limite: R$ " + clientes[i].limite.toFixed(2) + "<br>" +
-      "<div class='saldo'>Saldo: R$ " + clientes[i].saldo.toFixed(2) + "</div>" +
+      "<b>" + cliente.nome + "</b><br>" +
+      "Telefone: " + cliente.telefone + "<br>" +
+      "Categoria: " + cliente.categoria + "<br>" +
+      "Limite: R$ " + cliente.limite.toFixed(2) + "<br>" +
+      "<div class='saldo'>Saldo: R$ " + cliente.saldo.toFixed(2) + "</div>" +
       "<br><button onclick='registrarConsumo("+i+")'>Adicionar Consumo</button>" +
       "<button onclick='registrarPagamento("+i+")'>Registrar Pagamento</button>" +
       "<button class='btn-whats' onclick='enviarWhatsApp("+i+")'>Cobrar WhatsApp</button>" +
@@ -172,6 +198,5 @@ function mostrar(){
 carregar();
 
 </script>
-
 </body>
 </html>
