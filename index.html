@@ -4,111 +4,7 @@ DOCTYPE html>
 <meta charset="UTF-8">
 <title>Tonel 333 - Controle de Fiado</title>
 
-<style>
-* {
-  box-sizing: border-box;
-}
 
-body {
-  font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: #f8fafc;
-  margin: 0;
-  padding: 15px;
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 22px;
-}
-
-h3 {
-  margin-top: 30px;
-  margin-bottom: 10px;
-  font-size: 16px;
-  color: #94a3b8;
-  text-transform: uppercase;
-}
-
-input, select {
-  width: 100%;
-  padding: 14px;
-  margin: 6px 0 12px 0;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #1e293b;
-  color: #ffffff;
-  font-size: 16px;
-}
-
-input:focus, select:focus {
-  outline: none;
-  border-color: #38bdf8;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 8px;
-  border-radius: 10px;
-  border: none;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-button:active {
-  transform: scale(0.98);
-}
-
-.btn-consumo {
-  background: #dc2626;
-  color: white;
-}
-
-.btn-pagamento {
-  background: #16a34a;
-  color: white;
-}
-
-.btn-whats {
-  background: #25D366;
-  color: black;
-  margin-top: 10px;
-}
-
-.cliente {
-  background: #1e293b;
-  padding: 18px;
-  margin-top: 20px;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.saldo {
-  font-weight: bold;
-  color: #facc15;
-  font-size: 16px;
-  margin-top: 5px;
-}
-
-/* Melhor leitura no celular */
-@media (max-width: 600px) {
-  body {
-    padding: 12px;
-  }
-
-  h2 {
-    font-size: 20px;
-  }
-
-  input, select, button {
-    font-size: 15px;
-  }
-}
-</style>
 </head>
 
 <body>
@@ -130,7 +26,86 @@ button:active {
 <div id="lista"></div>
 
 <script>
+<style>
+* {
+  box-sizing: border-box;
+}
 
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #f8fafc;
+  margin: 0;
+  padding: 18px;
+  font-size: 18px; /* AUMENTEI A FONTE GERAL */
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 26px; /* maior */
+}
+
+h3 {
+  margin-top: 35px;
+  margin-bottom: 12px;
+  font-size: 18px;
+  color: #94a3b8;
+}
+
+input, select {
+  width: 100%;
+  padding: 18px; /* maior */
+  margin: 8px 0 15px 0;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #ffffff;
+  font-size: 18px; /* maior */
+}
+
+button {
+  width: 100%;
+  padding: 18px; /* maior */
+  margin-top: 12px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  font-size: 18px; /* maior */
+  cursor: pointer;
+}
+
+.btn-consumo {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-pagamento {
+  background: #16a34a;
+  color: white;
+}
+
+.btn-whats {
+  background: #25D366;
+  color: black;
+  margin-top: 15px;
+}
+
+.cliente {
+  background: #1e293b;
+  padding: 22px;
+  margin-top: 25px;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+
+.saldo {
+  font-weight: bold;
+  color: #facc15;
+  font-size: 20px; /* saldo maior */
+  margin-top: 8px;
+}
+</style>
 let clientes = [];
 
 function salvar(){
