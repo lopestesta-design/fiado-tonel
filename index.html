@@ -37,43 +37,47 @@ body {
   background: #0f172a;
   color: #f8fafc;
   margin: 0;
-  padding: 20px;
-  font-size: 20px;
+  padding: 25px;
+  font-size: 28px; /* corpo gigante */
 }
 
 h2 {
   text-align: center;
-  margin-bottom: 30px;
-  font-size: 28px;
+  margin-bottom: 40px;
+  font-size: 36px; /* título principal gigante */
 }
 
 h3 {
-  margin-top: 35px;
-  margin-bottom: 15px;
-  font-size: 20px;
+  margin-top: 45px;
+  margin-bottom: 20px;
+  font-size: 30px; /* subtítulos grandes */
   color: #94a3b8;
 }
 
 input, select {
   width: 100%;
-  padding: 20px;
-  margin: 10px 0 18px 0;
-  border-radius: 14px;
+  padding: 25px;
+  margin: 12px 0 20px 0;
+  border-radius: 18px;
   border: 1px solid #334155;
   background: #1e293b;
   color: #ffffff;
-  font-size: 20px;
+  font-size: 28px; /* entrada gigante */
 }
 
 button {
   width: 100%;
-  padding: 20px;
-  margin-top: 15px;
-  border-radius: 14px;
+  padding: 30px;
+  margin-top: 18px;
+  border-radius: 18px;
   border: none;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 28px; /* botão gigante */
   cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.97);
 }
 
 .btn-consumo {
@@ -89,22 +93,36 @@ button {
 .btn-whats {
   background: #25D366;
   color: black;
-  margin-top: 15px;
+  margin-top: 18px;
 }
 
 .cliente {
   background: #1e293b;
-  padding: 25px;
-  margin-top: 25px;
-  border-radius: 18px;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.5);
+  padding: 30px;
+  margin-top: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 }
 
 .saldo {
   font-weight: bold;
   color: #facc15;
-  font-size: 22px;
-  margin-top: 10px;
+  font-size: 32px;
+  margin-top: 12px;
+}
+
+/* Media query para telas pequenas */
+@media (max-width: 600px) {
+  body {
+    padding: 20px;
+    font-size: 26px;
+  }
+  h2 { font-size: 32px; }
+  h3 { font-size: 28px; }
+  input, select { font-size: 26px; padding: 22px; }
+  button { font-size: 26px; padding: 26px; }
+  .saldo { font-size: 30px; }
+  .cliente { padding: 28px; }
 }
 </style>
 let clientes = [];
