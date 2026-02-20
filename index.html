@@ -79,9 +79,9 @@ button:hover {
   position:relative;
 }
 
-#totalSaldo {
+#resumoFinanceiro {
   text-align:center;
-  font-size:20px;
+  font-size:18px;
   margin-bottom:12px;
   font-weight:bold;
   color:#ff6600;
@@ -109,7 +109,7 @@ button:hover {
   Tonel 333 - Controle Completo
 </h1>
 
-<div id="totalSaldo">Saldo Atual: R$ 0,00</div>
+<div id="resumoFinanceiro">Saldo Semana: R$ 0,00 | Mês: R$ 0,00 | Ano: R$ 0,00</div>
 
 <!-- Cadastrar Cliente -->
 <h3>Cadastrar Cliente</h3>
@@ -183,7 +183,7 @@ function cadastrarCliente() {
 
 function atualizarSelectClientes() {
   let select = document.getElementById("clienteSelect");
-  select.innerHTML = "";
+  select.innerHTML="";
   clientes.forEach(c=>{
     let option = document.createElement("option");
     option.value = c.nome;
@@ -291,6 +291,7 @@ function registrarEntrada(){
   document.getElementById("valorEntrada").value="";
   document.getElementById("taxaCartao").value="";
   salvarVendas();
+  atualizarResumo();
 }
 
 function registrarSaida(){
@@ -301,15 +302,53 @@ function registrarSaida(){
   document.getElementById("descricaoSaida").value="";
   document.getElementById("valorSaida").value="";
   salvarVendas();
+  atualizarResumo();
 }
 
 function atualizarHistorico(){
   let lista=document.getElementById("listaHistorico");
   lista.innerHTML="";
-  let total=0;
-  entradas.forEach(e=>{lista.innerHTML+=`<div class="entry"><b>Entrada:</b> ${e.descricao} - R$ ${e.valor.toFixed(2)} (${e.forma}${e.taxa?` - Taxa ${e.taxa}%`:""}) - Líquido: R$ ${e.liquido.toFixed(2)} - ${e.data}</div>`; total+=e.liquido;});
-  saidas.forEach(s=>{lista.innerHTML+=`<div class="exit"><b>Saída:</b> ${s.descricao} - R$ ${s.valor.toFixed(2)} - ${s.data}</div>`; total-=s.valor;});
-  document.getElementById("totalSaldo").textContent="Saldo Atual: R$ "+total.toFixed(2);
+  entradas.forEach(e=>{lista.innerHTML+=`<div class="entry"><b>Entrada:</b> ${e.descricao} - R$ ${e.valor.toFixed(2)} (${e.forma}${e.taxa?` - Taxa ${e.taxa}%`:""}) - Líquido: R$ ${e.liquido.toFixed(2)} - ${e.data}</div>`;});
+  saidas.forEach(s=>{lista.innerHTML+=`<div class="exit"><b>Saída:</b> ${s.descricao} - R$ ${s.valor.toFixed(2)} - ${s.data}</div>`;});
+}
+
+// === RESUMO FINANCEIRO ===
+function calcularTotais(periodo){
+  let hoje=new Date();
+  let totalEntradas=0;
+  let totalSaidas=0;
+  entradas.forEach(e=>{
+    let data=new Date(e.data.split("/").reverse().join("/"));
+    if(periodo==="semana"){
+      let diff=(hoje-data)/(1000*60*60*24);
+      if(diff>=0&&diff<7) totalEntradas+=e.liquido;
+    }else if(periodo==="mes"){
+      if(data.getMonth()===hoje.getMonth()&&data.getFullYear()===hoje.getFullYear()) totalEntradas+=e.liquido;
+    }else if(periodo==="ano"){
+      if(data.getFullYear()===hoje.getFullYear()) totalEntradas+=e.liquido;
+    }
+  });
+  saidas.forEach(s=>{
+    let data=new Date(s.data.split("/").reverse().join("/"));
+    if(periodo==="semana"){
+      let diff=(hoje-data)/(1000*60*60*24);
+      if(diff>=0&&diff<7) totalSaidas+=s.valor;
+    }else if(periodo==="mes"){
+      if(data.getMonth()===hoje.getMonth()&&data.getFullYear()===hoje.getFullYear()) totalSaidas+=s.valor;
+    }else if(periodo==="ano"){
+      if(data.getFullYear()===hoje.getFullYear()) totalSaidas+=s.valor;
+    }
+  });
+  let diferenca=totalEntradas-totalSaidas;
+  return {totalEntradas,totalSaidas,diferenca};
+}
+
+function atualizarResumo(){
+  const semana=calcularTotais("semana");
+  const mes=calcularTotais("mes");
+  const ano=calcularTotais("ano");
+  document.getElementById("resumoFinanceiro").textContent=
+    `Saldo Semana: R$ ${semana.diferenca.toFixed(2)} | Mês: R$ ${mes.diferenca.toFixed(2)} | Ano: R$ ${ano.diferenca.toFixed(2)}`;
 }
 
 // === BACKUP ===
@@ -329,10 +368,13 @@ function restaurarBackup(){
     salvarFiado();
     salvarVendas();
     alert("Backup restaurado com sucesso!");
+    atualizarResumo();
   }catch(e){alert("Backup inválido!");}
 }
 
+// Inicializa
 atualizarHistorico();
+atualizarResumo();
 </script>
 </body>
 </html>
