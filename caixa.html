@@ -1,1 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fechamento de Caixa - Tonel 333</title>
 
+<style>
+body { font-family:Arial; padding:20px; background:#fff8dc; color:#5c3a00; }
+.topo { display:flex; justify-content: space-between; align-items:center; margin-bottom:20px; }
+.logo { width:100px; }
+.voltar { font-size:22px; text-decoration:none; color:#5c3a00; }
+
+input { padding:8px; margin-bottom:15px; }
+
+.card {
+    border:2px solid #5c3a00;
+    padding:15px;
+    border-radius:8px;
+    margin-top:10px;
+    background:#fff;
+}
+.total { font-size:18px; font-weight:bold; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<div class="topo">
+<a href="index.html" class="voltar">←</a>
+<img src="logo.png" class="logo">
+</div>
+
+<h2>Fechamento de Caixa Diário</h2>
+
+<label>Selecione a Data:</label>
+<input type="date" id="dataCaixa">
+
+<button onclick="calcular()">Calcular</button>
+
+<div id="resultado"></div>
+
+<script>
+
+document.getElementById("dataCaixa").value = new Date().toISOString().slice(0,10);
+
+function calcular(){
+
+let dataSelecionada = document.getElementById("dataCaixa").value;
+
+let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+
+let totalVendido = 0;
+let totalRecebido = 0;
+let totalFiado = 0;
+let totalPagoFiado = 0;
+let totalSaidas = 0;
+
+// ENTRADAS
+entradas.forEach(e=>{
+    if(e.data === dataSelecionada){
+        totalVendido += e.valor;
+
+        if(e.pagamento === "fiado"){
+            totalFiado += e.valor;
+        } else {
+            totalRecebido += e.valor;
+        }
+    }
+});
+
+// PAGAMENTOS DE FIADO
+fiados.forEach(f=>{
+    f.pagamentos.forEach(p=>{
+        if(p.data === dataSelecionada){
+            totalPagoFiado += p.valor;
+        }
+    });
+});
+
+// SAÍDAS
+saidas.forEach(s=>{
+    if(s.data === dataSelecionada){
+        totalSaidas += s.valor;
+    }
+});
+
+// SALDO FINAL
+let saldoFinal = (totalRecebido + totalPagoFiado) - totalSaidas;
+
+document.getElementById("resultado").innerHTML = `
+<div class="card">
+
+<div>Total Vendido no Dia: R$ ${totalVendido.toFixed(2)}</div>
+<div>Total Recebido no Dia: R$ ${totalRecebido.toFixed(2)}</div>
+<div>Total Deixado em Fiado: R$ ${totalFiado.toFixed(2)}</div>
+<div>Recebimento de Fiado no Dia: R$ ${totalPagoFiado.toFixed(2)}</div>
+<div>Total de Saídas: R$ ${totalSaidas.toFixed(2)}</div>
+
+<hr>
+
+<div class="total">Saldo Final do Caixa: R$ ${saldoFinal.toFixed(2)}</div>
+
+</div>
+`;
+
+}
+
+</script>
+
+</body>
+</html>
