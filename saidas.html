@@ -11,8 +11,11 @@ body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5
 .topo img { width:120px; }
 .voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
 label { display:block; margin-top:10px; }
-input { padding:5px; margin-top:5px; width:100%; max-width:300px; }
+input, select { padding:5px; margin-top:5px; width:100%; max-width:300px; }
 button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
+.listaSaidas { margin-top:20px; }
+.listaSaidas div { margin-bottom:10px; padding:8px; border:1px solid #5c3a00; border-radius:6px; display:flex; justify-content: space-between; align-items:center; }
+.listaSaidas button { padding:5px; font-size:14px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -36,18 +39,36 @@ button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
   <button type="submit">Registrar</button>
 </form>
 
+<h3>Registros de Saídas</h3>
+<div class="listaSaidas" id="listaSaidas"></div>
+
 <script>
 document.getElementById('dataSaida').value = new Date().toISOString().slice(0,10);
+
+// Listar saídas
+function listarSaidas(){
+  let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+  let div = document.getElementById('listaSaidas');
+  div.innerHTML = '';
+  saidas.forEach((s,i)=>{
+    let sDiv = document.createElement('div');
+    sDiv.textContent = `${s.data} - ${s.descricao} - R$ ${s.valor.toFixed(2)}`;
+    div.appendChild(sDiv);
+  });
+}
+
+listarSaidas();
 
 document.getElementById('formSaida').addEventListener('submit', function(e){
   e.preventDefault();
   let descricao = document.getElementById('descricaoSaida').value;
-  let valor = document.getElementById('valorSaida').value;
+  let valor = parseFloat(document.getElementById('valorSaida').value);
   let data = document.getElementById('dataSaida').value;
   salvarSaida(valor, descricao, data);
   alert('Saída registrada!');
   this.reset();
   document.getElementById('dataSaida').value = new Date().toISOString().slice(0,10);
+  listarSaidas();
 });
 </script>
 
