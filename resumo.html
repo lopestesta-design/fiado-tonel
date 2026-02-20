@@ -11,7 +11,7 @@ body { font-family: Arial,sans-serif; background:#e6b800; color:#5c3a00; margin:
 .topo h2 { font-size:24px; font-weight:bold; margin:0 auto; text-align:center; flex:1; }
 .voltar { align-self:flex-start; padding:10px 15px; margin-bottom:20px; font-weight:900; font-size:16px; border:4px double #5c3a00; border-radius:10px; background:transparent; color:#5c3a00; text-decoration:none; cursor:pointer; }
 .conteudo { width:100%; max-width:600px; }
-.resultado { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; font-size:18px; }
+.resultado { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; font-size:16px; line-height:1.6; }
 .filtro { margin-top:10px; font-size:16px; padding:10px; border-radius:8px; border:none; background:#fff8dc; color:#5c3a00; }
 canvas { margin-top:20px; max-width:100%; }
 </style>
@@ -43,7 +43,7 @@ let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
 let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
 let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
 
-// filtrar por período
+// Função para filtrar por período
 function filtrarPorPeriodo(array, periodo) {
   if(periodo==='tudo') return array;
   const agora = new Date();
@@ -53,6 +53,14 @@ function filtrarPorPeriodo(array, periodo) {
     if(periodo==='mes') return data.getMonth()===agora.getMonth() && data.getFullYear()===agora.getFullYear();
     if(periodo==='ano') return data.getFullYear()===agora.getFullYear();
   });
+}
+
+function totalPorForma(array) {
+  return array.reduce((acc,item)=>{
+    if(!acc[item.formaPagamento]) acc[item.formaPagamento]=0;
+    acc[item.formaPagamento]+=item.valor;
+    return acc;
+  }, {});
 }
 
 function atualizarResumo() {
@@ -68,10 +76,21 @@ function atualizarResumo() {
   let totalSaidas = saidasFiltradas.reduce((acc,s)=>acc+s.valor,0);
   let saldoGeral = totalEntradas - totalSaidas - totalFiado;
 
+  let entradasPorForma = totalPorForma(entradasFiltradas);
+  let saidasPorForma = totalPorForma(saidasFiltradas);
+
   document.getElementById('resumoGeral').innerHTML = `
     <b>Total Fiado:</b> R$ ${totalFiado.toFixed(2)}<br>
     <b>Total Entradas:</b> R$ ${totalEntradas.toFixed(2)}<br>
+    &nbsp;&nbsp;• Dinheiro: R$ ${entradasPorForma.dinheiro?.toFixed(2)||0}<br>
+    &nbsp;&nbsp;• Pix: R$ ${entradasPorForma.pix?.toFixed(2)||0}<br>
+    &nbsp;&nbsp;• Débito: R$ ${entradasPorForma.debito?.toFixed(2)||0}<br>
+    &nbsp;&nbsp;• Crédito: R$ ${entradasPorForma.credito?.toFixed(2)||0}<br>
     <b>Total Saídas:</b> R$ ${totalSaidas.toFixed(2)}<br>
+    &nbsp;&nbsp;• Dinheiro: R$ ${saidasPorForma.dinheiro?.toFixed(2)||0}<br>
+    &nbsp;&nbsp;• Pix: R$ ${saidasPorForma.pix?.toFixed(2)||0}<br>
+    &nbsp;&nbsp;• Débito: R$ ${saidasPorForma.debito?.toFixed(2)||0}<br>
+    &nbsp;&nbsp;• Crédito: R$ ${saidasPorForma.credito?.toFixed(2)||0}<br>
     <b>Saldo Geral:</b> R$ ${saldoGeral.toFixed(2)}
   `;
 
