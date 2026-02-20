@@ -6,36 +6,16 @@
 <title>Fiado - Tonel 333</title>
 
 <style>
-body { font-family:Arial; padding:20px; background:#fff8dc; color:#5c3a00; }
-.topo { display:flex; justify-content: space-between; align-items:center; margin-bottom:20px; }
-.logo { width:100px; }
-.voltar { font-size:22px; text-decoration:none; color:#5c3a00; }
-
-.card {
-    border:2px solid #5c3a00;
-    padding:15px;
-    border-radius:8px;
-    margin-bottom:15px;
-    background:#fff;
-}
-
-.titulo { font-weight:bold; margin-top:10px; }
-
-button {
-    margin-top:5px;
-    padding:6px;
-    cursor:pointer;
-    font-weight:bold;
-}
-.pix-box {
-    background:#f5f5f5;
-    padding:10px;
-    border-radius:6px;
-    margin-top:10px;
-}
+body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
+.topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.logo{width:100px;}
+.voltar{text-decoration:none;font-size:22px;color:#5c3a00;}
+.card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
+button{margin:3px;}
+.pix{background:#eee;padding:5px;border-radius:4px;margin-top:5px;}
 </style>
-
 </head>
+
 <body>
 
 <div class="topo">
@@ -45,137 +25,97 @@ button {
 
 <h2>Controle de Fiado</h2>
 
-<div id="listaFiados"></div>
+<div id="lista"></div>
 
 <script>
 
-// 🔥 COLOQUE SUA CHAVE PIX AQUI
-const CHAVE_PIX = "SUA_CHAVE_PIX_AQUI";
+const CHAVE_PIX="SUA_CHAVE_PIX_AQUI";
 
-function listarFiados(){
+function listar(){
 
-    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-    let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-    let div = document.getElementById('listaFiados');
-    div.innerHTML = "";
+let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
+let clientes=JSON.parse(localStorage.getItem('clientes'))||[];
+let div=document.getElementById('lista');
+div.innerHTML="";
 
-    fiados.forEach((f,i)=>{
+fiados.forEach((f,i)=>{
 
-        let totalConsumo = f.consumos.reduce((soma,c)=> soma + c.valor,0);
-        let totalPago = f.pagamentos.reduce((soma,p)=> soma + p.valor,0);
-        let saldo = totalConsumo - totalPago;
+let totalConsumo=f.consumos.reduce((s,c)=>s+c.valor,0);
+let totalPago=f.pagamentos.reduce((s,p)=>s+p.valor,0);
+let saldo=totalConsumo-totalPago;
+let cliente=clientes.find(c=>c.nome===f.cliente);
 
-        let clienteInfo = clientes.find(c=>c.nome===f.cliente);
+let html=`<div class="card"><strong>${f.cliente}</strong><br><br>`;
 
-        let html = `
-        <div class="card">
+f.consumos.forEach((c,ci)=>{
+html+=`${c.data} - R$ ${c.valor.toFixed(2)}
+<button onclick="editarConsumo(${i},${ci})">✏</button>
+<button onclick="excluirConsumo(${i},${ci})">🗑</button><br>`;
+});
 
-        <strong>${f.cliente}</strong><br>
+html+=`<br><strong>Saldo: R$ ${saldo.toFixed(2)}</strong><br>
+<button onclick="pagar(${i})">Registrar Pagamento</button>
+<button onclick="whats('${cliente?.telefone||''}','${f.cliente}',${saldo})">WhatsApp</button>
 
-        <div class="titulo">Consumos:</div>`;
+<div class="pix">
+Chave Pix:<br>${CHAVE_PIX}<br>
+<button onclick="copiar()">Copiar Pix</button>
+</div>
+</div>`;
 
-        f.consumos.forEach(c=>{
-            html += `${c.data} - R$ ${c.valor.toFixed(2)}<br>`;
-        });
+div.innerHTML+=html;
 
-        html += `<div class="titulo">Pagamentos:</div>`;
+});
 
-        f.pagamentos.forEach(p=>{
-            html += `${p.data} - R$ ${p.valor.toFixed(2)}<br>`;
-        });
-
-        html += `
-        <hr>
-        Total Consumido: R$ ${totalConsumo.toFixed(2)}<br>
-        Total Pago: R$ ${totalPago.toFixed(2)}<br>
-        <strong>Saldo Atual: R$ ${saldo.toFixed(2)}</strong><br>
-
-        <button onclick="registrarPagamento(${i})">Registrar Pagamento</button>
-        <button onclick="enviarWhats('${clienteInfo?.telefone || ''}','${f.cliente}',${saldo})">Enviar WhatsApp</button>
-
-        <div class="pix-box">
-            <strong>Chave Pix:</strong><br>
-            ${CHAVE_PIX}<br>
-            <button onclick="copiarPix()">Copiar Pix</button>
-        </div>
-
-        </div>
-        `;
-
-        div.innerHTML += html;
-    });
 }
 
-listarFiados();
-
-function registrarPagamento(index){
-
-    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-    let valor = parseFloat(prompt("Valor pago:"));
-
-    if(!isNaN(valor) && valor > 0){
-
-        let hoje = new Date().toISOString().slice(0,10);
-
-        fiados[index].pagamentos.push({
-            data: hoje,
-            valor: valor
-        });
-
-        localStorage.setItem('fiados', JSON.stringify(fiados));
-        listarFiados();
-    }
+function editarConsumo(i,ci){
+let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
+let novo=parseFloat(prompt("Novo valor:",fiados[i].consumos[ci].valor));
+if(isNaN(novo))return;
+fiados[i].consumos[ci].valor=novo;
+localStorage.setItem('fiados',JSON.stringify(fiados));
+listar();
 }
 
-function copiarPix(){
-    navigator.clipboard.writeText(CHAVE_PIX);
-    alert("Chave Pix copiada!");
+function excluirConsumo(i,ci){
+if(!confirm("Excluir consumo?"))return;
+let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
+fiados[i].consumos.splice(ci,1);
+localStorage.setItem('fiados',JSON.stringify(fiados));
+listar();
 }
 
-function enviarWhats(telefone, nome, saldo){
+function pagar(i){
+let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
+let valor=parseFloat(prompt("Valor pago:"));
+if(isNaN(valor))return;
+let hoje=new Date().toISOString().slice(0,10);
+fiados[i].pagamentos.push({data:hoje,valor});
+localStorage.setItem('fiados',JSON.stringify(fiados));
+listar();
+}
 
-    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-    let cliente = fiados.find(f => f.cliente === nome);
+function copiar(){
+navigator.clipboard.writeText(CHAVE_PIX);
+alert("Pix copiado!");
+}
 
-    if(!cliente) return;
-
-    let ultimoMovimento = null;
-    let tipo = "";
-
-    if(cliente.consumos.length > 0){
-        ultimoMovimento = cliente.consumos[cliente.consumos.length - 1];
-        tipo = "Consumo";
-    }
-
-    if(cliente.pagamentos.length > 0){
-        let ultimoPagamento = cliente.pagamentos[cliente.pagamentos.length - 1];
-
-        if(!ultimoMovimento || ultimoPagamento.data >= ultimoMovimento.data){
-            ultimoMovimento = ultimoPagamento;
-            tipo = "Pagamento";
-        }
-    }
-
-    let textoMovimento = ultimoMovimento 
-        ? `${tipo} em ${ultimoMovimento.data} no valor de R$ ${ultimoMovimento.valor.toFixed(2)}`
-        : "Nenhum movimento registrado";
-
-    let msg = `Olá ${nome}!
-
-Último movimento:
-${textoMovimento}
+function whats(tel,nome,saldo){
+let msg=`Olá ${nome}!
 
 Saldo atual: R$ ${saldo.toFixed(2)}
 
-Chave Pix para pagamento:
-${14341419000111}
+Chave Pix:
+${14.341.419/0001-11}
 
 Tonel 333 🍺`;
 
-    window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(msg)}`);
+window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 }
 
-</script>
+listar();
 
+</script>
 </body>
 </html>
