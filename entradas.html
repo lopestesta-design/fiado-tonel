@@ -6,37 +6,15 @@
 <title>Entradas - Tonel 333</title>
 
 <style>
-body { font-family:Arial; padding:20px; background:#fff8dc; color:#5c3a00; }
-.topo { display:flex; justify-content: space-between; align-items:center; margin-bottom:20px; }
-.logo { width:100px; }
-.voltar { font-size:22px; text-decoration:none; color:#5c3a00; }
-
-input, select {
-    width:100%;
-    padding:8px;
-    margin-top:5px;
-    margin-bottom:10px;
-}
-
-button {
-    padding:10px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-.lista {
-    margin-top:20px;
-}
-
-.card {
-    border:1px solid #5c3a00;
-    padding:10px;
-    margin-bottom:10px;
-    border-radius:6px;
-}
+body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
+.topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.logo{width:100px;}
+.voltar{text-decoration:none;font-size:22px;color:#5c3a00;}
+input,select,button{padding:6px;margin:5px 0;width:100%;}
+.card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
 </style>
-
 </head>
+
 <body>
 
 <div class="topo">
@@ -44,18 +22,13 @@ button {
 <img src="logo.png" class="logo">
 </div>
 
-<h2>Registrar Venda</h2>
+<h2>Registrar Entrada</h2>
 
-<form id="formEntrada">
+<input type="date" id="data">
+<input type="text" id="descricao" placeholder="Descrição">
+<input type="number" id="valor" placeholder="Valor">
 
-<label>Descrição:</label>
-<input type="text" id="descricao" required>
-
-<label>Valor:</label>
-<input type="number" step="0.01" id="valor" required>
-
-<label>Forma de Pagamento:</label>
-<select id="pagamento">
+<select id="pagamento" onchange="verCliente()">
 <option value="dinheiro">Dinheiro</option>
 <option value="pix">Pix</option>
 <option value="debito">Débito</option>
@@ -63,104 +36,126 @@ button {
 <option value="fiado">Fiado</option>
 </select>
 
-<label>Cliente (se for Fiado):</label>
-<select id="cliente"></select>
+<select id="cliente" style="display:none;"></select>
 
-<label>Data:</label>
-<input type="date" id="data">
+<button onclick="salvar()">Salvar</button>
 
-<button type="submit">Salvar</button>
-
-</form>
-
-<h3>Histórico de Entradas</h3>
-<div class="lista" id="listaEntradas"></div>
+<h3>Histórico</h3>
+<div id="listaEntradas"></div>
 
 <script>
 
-// Define data de hoje
-document.getElementById("data").value = new Date().toISOString().slice(0,10);
+document.getElementById('data').valueAsDate = new Date();
 
-// Carregar clientes no select
+function verCliente(){
+    let pag = document.getElementById('pagamento').value;
+    let select = document.getElementById('cliente');
+    if(pag==="fiado"){
+        select.style.display="block";
+        carregarClientes();
+    }else{
+        select.style.display="none";
+    }
+}
+
 function carregarClientes(){
     let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
     let select = document.getElementById('cliente');
-    select.innerHTML = "<option value=''>Selecione</option>";
+    select.innerHTML="";
     clientes.forEach(c=>{
-        select.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+        select.innerHTML+=`<option value="${c.nome}">${c.nome}</option>`;
     });
 }
-carregarClientes();
 
-// Listar histórico
-function listarEntradas(){
+function salvar(){
+
     let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
-    let div = document.getElementById('listaEntradas');
-    div.innerHTML = "";
+    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
 
-    entradas.forEach(e=>{
-        div.innerHTML += `
-        <div class="card">
-        ${e.data} - ${e.descricao} <br>
-        R$ ${e.valor.toFixed(2)} - ${e.pagamento}
-        ${e.pagamento==="fiado" ? " - Cliente: "+e.cliente : ""}
-        </div>
-        `;
-    });
-}
-listarEntradas();
-
-
-// SALVAR VENDA
-document.getElementById('formEntrada').addEventListener('submit', function(e){
-    e.preventDefault();
-
+    let data = document.getElementById('data').value;
     let descricao = document.getElementById('descricao').value;
     let valor = parseFloat(document.getElementById('valor').value);
     let pagamento = document.getElementById('pagamento').value;
     let cliente = document.getElementById('cliente').value;
-    let data = document.getElementById('data').value;
 
-    // 1️⃣ Salvar entrada normal
-    let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
-    entradas.push({descricao, valor, pagamento, cliente, data});
-    localStorage.setItem('entradas', JSON.stringify(entradas));
+    if(!descricao || isNaN(valor)) return;
 
-    // 2️⃣ SE FOR FIADO -> salvar no histórico detalhado
-    if(pagamento === "fiado" && cliente){
+    entradas.push({data,descricao,valor,pagamento,cliente});
+    localStorage.setItem('entradas',JSON.stringify(entradas));
 
-        let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+    if(pagamento==="fiado"){
+        let clienteFiado = fiados.find(f=>f.cliente===cliente);
 
-        let existente = fiados.find(f => f.cliente === cliente);
-
-        if(existente){
-            existente.consumos.push({
-                data: data,
-                valor: valor
-            });
-        } else {
-            fiados.push({
-                cliente: cliente,
-                consumos: [{
-                    data: data,
-                    valor: valor
-                }],
-                pagamentos: []
-            });
+        if(!clienteFiado){
+            clienteFiado={cliente,consumos:[],pagamentos:[]};
+            fiados.push(clienteFiado);
         }
 
-        localStorage.setItem('fiados', JSON.stringify(fiados));
+        clienteFiado.consumos.push({data,valor});
+        localStorage.setItem('fiados',JSON.stringify(fiados));
     }
 
-    alert("Venda registrada!");
-
-    this.reset();
-    document.getElementById("data").value = new Date().toISOString().slice(0,10);
-
     listarEntradas();
-});
+}
+
+function listarEntradas(){
+    let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+    let div = document.getElementById('listaEntradas');
+    div.innerHTML="";
+
+    entradas.forEach((e,i)=>{
+        div.innerHTML+=`
+        <div class="card">
+        ${e.data} - ${e.descricao}<br>
+        R$ ${e.valor.toFixed(2)} - ${e.pagamento}
+        ${e.pagamento==="fiado"?" - "+e.cliente:""}<br>
+        <button onclick="editar(${i})">✏</button>
+        <button onclick="excluir(${i})">🗑</button>
+        </div>
+        `;
+    });
+}
+
+function editar(i){
+    let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+    let e = entradas[i];
+
+    let novoValor = parseFloat(prompt("Novo valor:",e.valor));
+    if(isNaN(novoValor)) return;
+
+    if(e.pagamento==="fiado"){
+        let f = fiados.find(x=>x.cliente===e.cliente);
+        let c = f.consumos.find(x=>x.data===e.data && x.valor===e.valor);
+        if(c) c.valor=novoValor;
+        localStorage.setItem('fiados',JSON.stringify(fiados));
+    }
+
+    e.valor=novoValor;
+    localStorage.setItem('entradas',JSON.stringify(entradas));
+    listarEntradas();
+}
+
+function excluir(i){
+    if(!confirm("Excluir lançamento?")) return;
+
+    let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+    let e = entradas[i];
+
+    if(e.pagamento==="fiado"){
+        let f = fiados.find(x=>x.cliente===e.cliente);
+        f.consumos = f.consumos.filter(x=>!(x.data===e.data && x.valor===e.valor));
+        localStorage.setItem('fiados',JSON.stringify(fiados));
+    }
+
+    entradas.splice(i,1);
+    localStorage.setItem('entradas',JSON.stringify(entradas));
+    listarEntradas();
+}
+
+listarEntradas();
 
 </script>
-
 </body>
 </html>
