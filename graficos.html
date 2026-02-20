@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gráficos Financeiros - Tonel 333</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="app.js"></script>
+<style>
+body {
+    font-family: Arial,sans-serif;
+    background: #fff8dc;
+    color: #5c3a00;
+    padding: 20px;
+}
+.topo {
+    display:flex;
+    justify-content: flex-end;
+    align-items:center;
+    margin-bottom:20px;
+}
+.topo img { width:120px; }
+.voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
+h2 { margin-top:0; margin-bottom:20px; }
+canvas { background:#fff8dc; border:1px solid #5c3a00; border-radius:8px; padding:10px; }
+</style>
+</head>
+<body>
+
+<div class="topo">
+    <a href="index.html" class="voltar">←</a>
+    <img src="logo.png" alt="Tonel 333">
+</div>
+
+<h2>Gráficos Financeiros</h2>
+
+<canvas id="graficoEntradasSaidas" width="400" height="200"></canvas>
+<canvas id="graficoFiado" width="400" height="200" style="margin-top:30px;"></canvas>
+
+<script>
+function gerarGraficos(){
+    let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+    let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+
+    // Entradas vs Saídas
+    new Chart(document.getElementById('graficoEntradasSaidas'), {
+        type: 'bar',
+        data: {
+            labels: ['Entradas', 'Saídas'],
+            datasets: [{
+                label: 'R$',
+                data: [entradas.reduce((acc,e)=> acc+e.valor-e.taxa,0), saidas.reduce((acc,s)=> acc+s.valor,0)],
+                backgroundColor: ['#5c3a00','#a0522d']
+            }]
+        },
+        options: {
+            responsive:true,
+            plugins: { legend:{ display:false } },
+            scales: { y:{ beginAtZero:true } }
+        }
+    });
+
+    // Fiado
+    new Chart(document.getElementById('graficoFiado'), {
+        type:'bar',
+        data:{
+            labels: ['Fiado'],
+            datasets:[{
+                label:'R$',
+                data:[fiados.reduce((acc,f)=> acc+f.valor,0)],
+                backgroundColor:['#d2691e']
+            }]
+        },
+        options:{ responsive:true, plugins:{ legend:{display:false} }, scales:{y:{beginAtZero:true}} }
+    });
+}
+
+// Chama ao carregar
+gerarGraficos();
+</script>
+
+</body>
+</html>
