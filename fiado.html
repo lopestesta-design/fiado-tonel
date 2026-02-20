@@ -14,6 +14,9 @@ h2 { margin-top:0; }
 label { display:block; margin-top:10px; }
 input, select { padding:5px; margin-top:5px; width:100%; max-width:300px; }
 button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
+.listaFiado { margin-top:20px; }
+.listaFiado div { margin-bottom:10px; padding:8px; border:1px solid #5c3a00; border-radius:6px; display:flex; justify-content: space-between; align-items:center; }
+.listaFiado button { padding:5px; font-size:14px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -47,6 +50,9 @@ button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
   <button type="submit">Registrar</button>
 </form>
 
+<h3>Registros de Fiado</h3>
+<div class="listaFiado" id="listaFiado"></div>
+
 <script>
 // Define data de hoje como padrão
 document.getElementById('dataFiado').value = new Date().toISOString().slice(0,10);
@@ -64,10 +70,32 @@ function carregarClientesFiado(){
   });
 }
 
+// Função para listar fiados
+function listarFiados(){
+  let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+  let div = document.getElementById('listaFiado');
+  div.innerHTML = '';
+  fiados.forEach((f, i)=>{
+    let fDiv = document.createElement('div');
+    fDiv.innerHTML = `${f.data} - ${f.cliente} - R$ ${f.valor.toFixed(2)} - ${f.pagamento} 
+      <button onclick="enviarWhatsApp(${i})">WhatsApp</button>`;
+    div.appendChild(fDiv);
+  });
+}
+
+// Função para enviar WhatsApp
+function enviarWhatsApp(index){
+  let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+  let f = fiados[index];
+  let msg = `Olá ${f.cliente}, você tem um consumo de R$ ${f.valor.toFixed(2)} no Tonel 333. Obrigado!`;
+  let url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+}
+
 // Chama ao carregar a página
 carregarClientesFiado();
+listarFiados();
 
-// Ao enviar formulário
 document.getElementById('formFiado').addEventListener('submit', function(e){
   e.preventDefault();
   let cliente = document.getElementById('clienteFiado').value;
@@ -78,7 +106,8 @@ document.getElementById('formFiado').addEventListener('submit', function(e){
   alert('Fiado registrado!');
   this.reset();
   document.getElementById('dataFiado').value = new Date().toISOString().slice(0,10);
-  carregarClientesFiado(); // Atualiza lista de clientes
+  carregarClientesFiado();
+  listarFiados();
 });
 </script>
 
