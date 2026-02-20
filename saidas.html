@@ -3,93 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonel 333 - Saídas</title>
+<title>Saídas - Tonel 333</title>
+<script src="app.js"></script>
 <style>
-body { font-family: Arial,sans-serif; background:#e6b800; color:#5c3a00; margin:0; padding:20px; }
-.topo { display:flex; align-items:center; justify-content:center; width:100%; max-width:600px; margin-bottom:20px; position:relative; }
-.topo img { width:80px; position:absolute; left:0; }
-.topo h2 { font-size:24px; font-weight:bold; margin:0 auto; text-align:center; flex:1; }
-.voltar { align-self:flex-start; padding:10px 15px; margin-bottom:20px; font-weight:900; font-size:16px; border:4px double #5c3a00; border-radius:10px; background:transparent; color:#5c3a00; text-decoration:none; cursor:pointer; }
-.conteudo { width:100%; max-width:600px; }
-input, select, button { width:100%; padding:12px; margin-top:10px; font-size:16px; border-radius:8px; border:none; }
-input { background:#fff8dc; color:#5c3a00; }
-select { background:#fff8dc; color:#5c3a00; }
-button { font-weight:bold; cursor:pointer; }
-.btn-add { background:#dc2626; color:white; }
-.saida { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; }
-.icon { cursor:pointer; margin-left:5px; color:#dc2626; font-weight:bold; }
+body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5c3a00; }
+.topo { display:flex; justify-content: flex-end; align-items:center; margin-bottom:20px; }
+.topo img { width:120px; }
+.voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
+label { display:block; margin-top:10px; }
+input { padding:5px; margin-top:5px; width:100%; max-width:300px; }
+button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 </style>
 </head>
 <body>
 
-<header class="topo">
-<img src="logo.png" alt="Tonel 333">
-<h2>Saídas</h2>
-</header>
-
-<a href="index.html" class="voltar">⬅ Voltar à Home</a>
-
-<div class="conteudo">
-<h3>Adicionar Saída</h3>
-<input type="text" id="descricaoSaida" placeholder="Descrição">
-<input type="number" id="valorSaida" placeholder="Valor">
-<input type="date" id="dataSaida">
-<select id="formaPagamentoSaida">
-  <option value="dinheiro">Dinheiro</option>
-  <option value="pix">Pix</option>
-  <option value="debito">Débito</option>
-  <option value="credito">Crédito</option>
-</select>
-<input type="number" id="taxaCartaoSaida" placeholder="Taxa % (se débito/crédito)" step="0.01">
-<button class="btn-add" onclick="adicionarSaida()">Adicionar</button>
-
-<div id="listaSaidas"></div>
+<div class="topo">
+  <a href="index.html" class="voltar">←</a>
+  <img src="logo.png" alt="Tonel 333">
 </div>
 
+<h2>Registrar Saída</h2>
+<form id="formSaida">
+  <label>Descrição:</label>
+  <input type="text" id="descricaoSaida" required>
+
+  <label>Valor:</label>
+  <input type="number" id="valorSaida" step="0.01" required>
+
+  <label>Data:</label>
+  <input type="date" id="dataSaida">
+
+  <button type="submit">Registrar</button>
+</form>
+
 <script>
-let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+document.getElementById('dataSaida').value = new Date().toISOString().slice(0,10);
 
-function atualizarSaidas() {
-  let lista = document.getElementById("listaSaidas");
-  lista.innerHTML = "";
-  saidas.forEach((s,i)=>{
-    lista.innerHTML += `
-      <div class="saida">
-        ${s.data} - ${s.descricao} - R$ ${s.valor.toFixed(2)} - ${s.formaPagamento} ${s.taxa>0?`- Taxa: ${s.taxa}%`:''}
-        <span class="icon" onclick="excluirSaida(${i})">x</span>
-      </div>
-    `;
-  });
-  localStorage.setItem('saidas', JSON.stringify(saidas));
-}
-
-function adicionarSaida() {
-  let desc = document.getElementById("descricaoSaida").value.trim();
-  let val = parseFloat(document.getElementById("valorSaida").value);
-  let data = document.getElementById("dataSaida").value || new Date().toISOString().split("T")[0];
-  let forma = document.getElementById("formaPagamentoSaida").value;
-  let taxa = parseFloat(document.getElementById("taxaCartaoSaida").value) || 0;
-
-  if(!desc || !val) return alert("Informe descrição e valor");
-  
-  // aplica taxa se pagamento for débito ou crédito
-  if(forma==='debito' || forma==='credito') val = val * (1 - taxa/100);
-  
-  saidas.push({descricao:desc, valor:val, data:data, formaPagamento:forma, taxa: taxa});
-  atualizarSaidas();
-}
-
-function excluirSaida(i) {
-  if(confirm("Confirma exclusão da saída?")) {
-    saidas.splice(i,1);
-    atualizarSaidas();
-  }
-}
-
-// coloca data de hoje como padrão
-document.getElementById("dataSaida").value = new Date().toISOString().split("T")[0];
-
-atualizarSaidas();
+document.getElementById('formSaida').addEventListener('submit', function(e){
+  e.preventDefault();
+  let descricao = document.getElementById('descricaoSaida').value;
+  let valor = document.getElementById('valorSaida').value;
+  let data = document.getElementById('dataSaida').value;
+  salvarSaida(valor, descricao, data);
+  alert('Saída registrada!');
+  this.reset();
+  document.getElementById('dataSaida').value = new Date().toISOString().slice(0,10);
+});
 </script>
 
 </body>
