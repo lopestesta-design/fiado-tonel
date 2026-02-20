@@ -1,18 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fiado</title>
+<title>Fiado - Tonel 333</title>
+
 <style>
 body { font-family:Arial; padding:20px; background:#fff8dc; color:#5c3a00; }
 .topo { display:flex; justify-content: space-between; align-items:center; margin-bottom:20px; }
 .logo { width:100px; }
 .voltar { font-size:22px; text-decoration:none; color:#5c3a00; }
-.card { border:1px solid #5c3a00; padding:10px; margin-bottom:15px; border-radius:6px; }
-button { margin-top:5px; padding:5px; }
+
+.card {
+    border:2px solid #5c3a00;
+    padding:15px;
+    border-radius:8px;
+    margin-bottom:15px;
+    background:#fff;
+}
+
 .titulo { font-weight:bold; margin-top:10px; }
+
+button {
+    margin-top:5px;
+    padding:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+.pix-box {
+    background:#f5f5f5;
+    padding:10px;
+    border-radius:6px;
+    margin-top:10px;
+}
 </style>
+
 </head>
 <body>
 
@@ -27,7 +49,11 @@ button { margin-top:5px; padding:5px; }
 
 <script>
 
+// 🔥 COLOQUE SUA CHAVE PIX AQUI
+const CHAVE_PIX = "SUA_CHAVE_PIX_AQUI";
+
 function listarFiados(){
+
     let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
     let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
     let div = document.getElementById('listaFiados');
@@ -43,7 +69,9 @@ function listarFiados(){
 
         let html = `
         <div class="card">
+
         <strong>${f.cliente}</strong><br>
+
         <div class="titulo">Consumos:</div>`;
 
         f.consumos.forEach(c=>{
@@ -62,8 +90,15 @@ function listarFiados(){
         Total Pago: R$ ${totalPago.toFixed(2)}<br>
         <strong>Saldo Atual: R$ ${saldo.toFixed(2)}</strong><br>
 
-        <button onclick="pagar(${i})">Registrar Pagamento</button>
-        <button onclick="enviarWhats('${clienteInfo?.telefone || ''}','${f.cliente}',${saldo})">WhatsApp</button>
+        <button onclick="registrarPagamento(${i})">Registrar Pagamento</button>
+        <button onclick="enviarWhats('${clienteInfo?.telefone || ''}','${f.cliente}',${saldo})">Enviar WhatsApp</button>
+
+        <div class="pix-box">
+            <strong>Chave Pix:</strong><br>
+            ${CHAVE_PIX}<br>
+            <button onclick="copiarPix()">Copiar Pix</button>
+        </div>
+
         </div>
         `;
 
@@ -73,20 +108,70 @@ function listarFiados(){
 
 listarFiados();
 
-function pagar(index){
+function registrarPagamento(index){
+
     let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
     let valor = parseFloat(prompt("Valor pago:"));
 
-    if(!isNaN(valor) && valor>0){
+    if(!isNaN(valor) && valor > 0){
+
         let hoje = new Date().toISOString().slice(0,10);
-        fiados[index].pagamentos.push({data:hoje, valor:valor});
+
+        fiados[index].pagamentos.push({
+            data: hoje,
+            valor: valor
+        });
+
         localStorage.setItem('fiados', JSON.stringify(fiados));
         listarFiados();
     }
 }
 
-function enviarWhats(telefone,nome,saldo){
-    let msg = `Olá ${nome}, seu saldo atual no Tonel 333 é R$ ${saldo.toFixed(2)}.`;
+function copiarPix(){
+    navigator.clipboard.writeText(CHAVE_PIX);
+    alert("Chave Pix copiada!");
+}
+
+function enviarWhats(telefone, nome, saldo){
+
+    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+    let cliente = fiados.find(f => f.cliente === nome);
+
+    if(!cliente) return;
+
+    let ultimoMovimento = null;
+    let tipo = "";
+
+    if(cliente.consumos.length > 0){
+        ultimoMovimento = cliente.consumos[cliente.consumos.length - 1];
+        tipo = "Consumo";
+    }
+
+    if(cliente.pagamentos.length > 0){
+        let ultimoPagamento = cliente.pagamentos[cliente.pagamentos.length - 1];
+
+        if(!ultimoMovimento || ultimoPagamento.data >= ultimoMovimento.data){
+            ultimoMovimento = ultimoPagamento;
+            tipo = "Pagamento";
+        }
+    }
+
+    let textoMovimento = ultimoMovimento 
+        ? `${tipo} em ${ultimoMovimento.data} no valor de R$ ${ultimoMovimento.valor.toFixed(2)}`
+        : "Nenhum movimento registrado";
+
+    let msg = `Olá ${nome}!
+
+Último movimento:
+${textoMovimento}
+
+Saldo atual: R$ ${saldo.toFixed(2)}
+
+Chave Pix para pagamento:
+${14341419000111}
+
+Tonel 333 🍺`;
+
     window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(msg)}`);
 }
 
