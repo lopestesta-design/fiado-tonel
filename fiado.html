@@ -5,28 +5,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Fiado</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #e6b800;
+    color: #5c3a00;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .topo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .topo img {
+    width: 80px;
+    height: auto;
+    position: absolute;
+    left: 0;
+  }
+
+  .topo h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 auto;
+    text-align: center;
+    flex: 1;
+  }
+
+  .voltar {
+    align-self: flex-start;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    font-weight: 900;
+    font-size: 16px;
+    border: 4px double #5c3a00;
+    border-radius: 10px;
+    background: transparent;
+    color: #5c3a00;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .voltar:hover {
+    background: rgba(92, 58, 0, 0.1);
+  }
+
+  .conteudo {
+    width: 100%;
+    max-width: 600px;
+  }
+
+</style>
 </head>
 <body>
 
-<header>
+<header class="topo">
   <img src="logo.png" alt="Tonel 333">
-  <h1>Fiado</h1>
+  <h2>Fiado</h2>
 </header>
 
-<h3>Cadastrar Cliente</h3>
-<input type="text" id="nome" placeholder="Nome do Cliente">
-<input type="tel" id="telefone" placeholder="Telefone 5511999999999">
-<button onclick="cadastrarCliente()">Cadastrar</button>
+<a href="index.html" class="voltar">⬅ Voltar à Home</a>
 
-<h3>Movimentação</h3>
-<select id="clienteSelect"></select>
-<input type="number" id="valor" placeholder="Valor">
-<button onclick="adicionarConsumo()">Adicionar Consumo</button>
-<button onclick="registrarPagamento()">Registrar Pagamento</button>
+<div class="conteudo">
+  <!-- Conteúdo do controle de fiado -->
+</div>
 
-<h3>Clientes</h3>
-<div id="lista"></div>
-
-<script src="script-fiado.js"></script>
 </body>
 </html>
