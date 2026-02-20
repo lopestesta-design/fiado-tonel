@@ -1,1 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tonel 333 - Resumo Financeiro</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<header>
+  <img src="logo.png" alt="Tonel 333">
+  <h1>Resumo Financeiro</h1>
+</header>
+
+<h3>Resumo Geral</h3>
+<div id="resumo"></div>
+
+<script>
+let entradas = JSON.parse(localStorage.getItem("entradas")) || [];
+let saidas = JSON.parse(localStorage.getItem("saidas")) || [];
+let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+
+function atualizarResumo() {
+  let totalEntradas = entradas.reduce((a,e)=>a+e.valor,0);
+  let totalSaidas = saidas.reduce((a,e)=>a+e.valor,0);
+  let totalFiado = clientes.reduce((a,c)=>a+c.saldo,0);
+  let saldo = totalEntradas - totalSaidas;
+
+  document.getElementById("resumo").innerHTML = `
+    <div class="cliente-box">
+      <b>Total Entradas:</b> R$ ${totalEntradas.toFixed(2)}<br>
+      <b>Total Saídas:</b> R$ ${totalSaidas.toFixed(2)}<br>
+      <b>Total Fiado:</b> R$ ${totalFiado.toFixed(2)}<br>
+      <b>Saldo Líquido:</b> R$ ${saldo.toFixed(2)}
+    </div>
+  `;
+}
+
+atualizarResumo();
+</script>
+
+</body>
+</html>
