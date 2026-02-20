@@ -3,8 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonel 333 - App</title>
+<title>Tonel 333 - Home</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  body {
+    font-family: Arial;
+    background: #111;
+    color: white;
+    text-align: center;
+    padding: 20px;
+  }
+
+  header img {
+    width: 150px;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    margin-bottom: 40px;
+  }
+
+  .botao {
+    display: block;
+    width: 80%;
+    max-width: 300px;
+    margin: 10px auto;
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+  }
+
+  .fiado { background: #28a745; }
+  .entradas { background: #16a34a; }
+  .saidas { background: #dc2626; }
+  .resumo { background: #ffcc00; color: #111; }
+</style>
 </head>
 <body>
 
@@ -13,12 +51,10 @@
   <h1>Tonel 333</h1>
 </header>
 
-<div class="main-buttons">
-  <button class="section-btn btn-fiado" onclick="location.href='fiado.html'">Fiado</button>
-  <button class="section-btn btn-entradas" onclick="location.href='entradas.html'">Entradas</button>
-  <button class="section-btn btn-saidas" onclick="location.href='saidas.html'">Saídas</button>
-  <button class="section-btn btn-resumo" onclick="location.href='resumo.html'">Resumo Financeiro</button>
-</div>
+<a href="fiado.html" class="botao fiado">Fiado</a>
+<a href="entradas.html" class="botao entradas">Entradas</a>
+<a href="saidas.html" class="botao saidas">Saídas</a>
+<a href="resumo.html" class="botao resumo">Resumo Financeiro</a>
 
 </body>
 </html>
