@@ -9,8 +9,9 @@ body { font-family:Arial; padding:20px; background:#fff8dc; color:#5c3a00; }
 .topo { display:flex; justify-content: space-between; align-items:center; margin-bottom:20px; }
 .logo { width:100px; }
 .voltar { font-size:22px; text-decoration:none; color:#5c3a00; }
-.card { border:1px solid #5c3a00; padding:10px; margin-bottom:10px; border-radius:6px; }
+.card { border:1px solid #5c3a00; padding:10px; margin-bottom:15px; border-radius:6px; }
 button { margin-top:5px; padding:5px; }
+.titulo { font-weight:bold; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -25,6 +26,7 @@ button { margin-top:5px; padding:5px; }
 <div id="listaFiados"></div>
 
 <script>
+
 function listarFiados(){
     let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
     let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
@@ -32,36 +34,62 @@ function listarFiados(){
     div.innerHTML = "";
 
     fiados.forEach((f,i)=>{
+
+        let totalConsumo = f.consumos.reduce((soma,c)=> soma + c.valor,0);
+        let totalPago = f.pagamentos.reduce((soma,p)=> soma + p.valor,0);
+        let saldo = totalConsumo - totalPago;
+
         let clienteInfo = clientes.find(c=>c.nome===f.cliente);
 
-        div.innerHTML += `
+        let html = `
         <div class="card">
-            <strong>${f.cliente}</strong><br>
-            Data: ${f.data}<br>
-            Saldo: R$ ${f.saldo.toFixed(2)}<br>
-            <button onclick="pagar(${i})">Dar Baixa</button>
-            <button onclick="enviarWhats('${clienteInfo?.telefone || ''}','${f.cliente}',${f.saldo})">WhatsApp</button>
-        </div>`;
+        <strong>${f.cliente}</strong><br>
+        <div class="titulo">Consumos:</div>`;
+
+        f.consumos.forEach(c=>{
+            html += `${c.data} - R$ ${c.valor.toFixed(2)}<br>`;
+        });
+
+        html += `<div class="titulo">Pagamentos:</div>`;
+
+        f.pagamentos.forEach(p=>{
+            html += `${p.data} - R$ ${p.valor.toFixed(2)}<br>`;
+        });
+
+        html += `
+        <hr>
+        Total Consumido: R$ ${totalConsumo.toFixed(2)}<br>
+        Total Pago: R$ ${totalPago.toFixed(2)}<br>
+        <strong>Saldo Atual: R$ ${saldo.toFixed(2)}</strong><br>
+
+        <button onclick="pagar(${i})">Registrar Pagamento</button>
+        <button onclick="enviarWhats('${clienteInfo?.telefone || ''}','${f.cliente}',${saldo})">WhatsApp</button>
+        </div>
+        `;
+
+        div.innerHTML += html;
     });
 }
+
 listarFiados();
 
 function pagar(index){
     let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-    let valor = parseFloat(prompt("Quanto ele está pagando?"));
+    let valor = parseFloat(prompt("Valor pago:"));
 
     if(!isNaN(valor) && valor>0){
-        fiados[index].saldo -= valor;
-        if(fiados[index].saldo < 0) fiados[index].saldo = 0;
+        let hoje = new Date().toISOString().slice(0,10);
+        fiados[index].pagamentos.push({data:hoje, valor:valor});
         localStorage.setItem('fiados', JSON.stringify(fiados));
         listarFiados();
     }
 }
 
 function enviarWhats(telefone,nome,saldo){
-    let msg = `Olá ${nome}, você está devendo R$ ${saldo.toFixed(2)} no Tonel 333.`;
+    let msg = `Olá ${nome}, seu saldo atual no Tonel 333 é R$ ${saldo.toFixed(2)}.`;
     window.open(`https://wa.me/${telefone}?text=${encodeURIComponent(msg)}`);
 }
+
 </script>
 
 </body>
