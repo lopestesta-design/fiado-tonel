@@ -4,67 +4,70 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Home</title>
-<link rel="stylesheet" href="style.css">
 <style>
-  /* Fundo uniforme igual ao fundo da logo */
-  body {
-    font-family: Arial, sans-serif;
-    background: #e6b800; /* amarelo uniforme */
-    color: #5c3a00; /* marrom da logo */
-    text-align: center;
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
+body {
+  font-family: Arial,sans-serif;
+  background:#e6b800;
+  color:#5c3a00;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+}
 
-  header img {
-    width: 300px; /* logo grande */
-    height: auto;
-    margin-bottom: 50px;
-    background: transparent;
-  }
+.topo {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-bottom:50px;
+}
 
-  .botoes {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* duas colunas */
-    gap: 20px;
-    width: 100%;
-    max-width: 500px;
-  }
+.topo img {
+  width:150px;
+  margin-bottom:20px;
+}
 
-  .botao {
-    padding: 18px;
-    font-size: 20px;
-    font-weight: 900; /* mais bold */
-    border: 4px double #5c3a00; /* borda dupla mais grossa */
-    border-radius: 10px;
-    background: transparent;
-    color: #5c3a00;
-    text-decoration: none;
-    cursor: pointer;
-    transition: 0.2s;
-  }
+.botoes {
+  display:grid;
+  grid-template-columns: repeat(2, 150px);
+  gap:20px;
+}
 
-  .botao:hover {
-    background: rgba(92, 58, 0, 0.1); /* leve efeito hover */
-  }
+.botoes a {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:15px;
+  font-weight:bold;
+  font-size:16px;
+  border:4px double #5c3a00;
+  border-radius:10px;
+  text-decoration:none;
+  color:#5c3a00;
+  background:transparent;
+  text-align:center;
+  cursor:pointer;
+}
+
+.botoes a:hover {
+  background:#fff8dc;
+}
 </style>
 </head>
 <body>
 
-<header>
+<div class="topo">
   <img src="logo.png" alt="Tonel 333">
-</header>
+</div>
 
 <div class="botoes">
-  <a href="entradas.html" class="botao">Entradas</a>
-  <a href="saidas.html" class="botao">Saídas</a>
-  <a href="fiado.html" class="botao">Fiado</a>
-  <a href="resumo.html" class="botao">Resumo</a>
+  <a href="entradas.html">Entradas</a>
+  <a href="saidas.html">Saídas</a>
+  <a href="fiado.html">Fiado</a>
+  <a href="resumo.html">Resumo</a>
 </div>
 
 </body>
