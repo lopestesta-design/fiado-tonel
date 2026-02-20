@@ -5,20 +5,69 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Controle Completo</title>
 <style>
-body { font-family: Arial; background:#111; color:white; padding:10px; margin:0; }
-h1,h3 { text-align:center; margin-bottom:8px; }
-input,select,button { width:100%; padding:16px; margin-top:8px; font-size:18px; border-radius:10px; border:none; }
-input,select { background:#222; color:white; }
-button { font-weight:bold; cursor:pointer; }
-.btn-add { background:#28a745; color:white; }
-.btn-consumo { background:#dc2626; color:white; }
-.btn-pagamento { background:#16a34a; color:white; }
-.btn-whats { background:#25D366; color:white; }
-.btn-entrada { background:#28a745; color:white; }
-.btn-saida { background:#dc2626; color:white; }
-.btn-backup { background:#ff9800; color:white; }
-.cliente, .entry, .exit { background:#1e1e1e; padding:12px; margin-top:10px; border-radius:10px; font-size:16px; word-wrap: break-word; }
-#totalSaldo { text-align:center; font-size:18px; margin-bottom:10px; font-weight:bold; color:#ffcc00; }
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f0f0; /* fundo mais claro */
+  color: #222; /* texto escuro */
+  padding: 15px;
+  margin: 0;
+}
+
+h1,h3 {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+input, select {
+  background: #fff;
+  color: #222;
+}
+
+button {
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+.btn-add { background: #28a745; color: #fff; }
+.btn-consumo { background: #dc2626; color: #fff; }
+.btn-pagamento { background: #16a34a; color: #fff; }
+.btn-whats { background: #25D366; color: #fff; }
+.btn-entrada { background: #28a745; color: #fff; }
+.btn-saida { background: #dc2626; color: #fff; }
+.btn-backup { background: #ff9800; color: #fff; }
+
+.cliente, .entry, .exit {
+  background: #fff; /* caixas claras */
+  color: #222;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* leve sombra */
+  word-wrap: break-word;
+}
+
+#totalSaldo {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  color: #ff6600;
+}
 </style>
 </head>
 <body>
@@ -49,7 +98,7 @@ button { font-weight:bold; cursor:pointer; }
   <option value="debito">Débito</option>
   <option value="credito">Crédito</option>
 </select>
-<input type="number" id="taxaCartao" placeholder="Taxa % (somente para débito/crédito)">
+<input type="number" id="taxaCartao" placeholder="Taxa % (somente débito/crédito)">
 <button class="btn-entrada" onclick="registrarEntrada()">Adicionar Entrada</button>
 
 <!-- Saídas -->
@@ -204,6 +253,7 @@ function atualizarHistorico(){
   document.getElementById("totalSaldo").textContent="Saldo Atual: R$ "+total.toFixed(2);
 }
 
+// === BACKUP ===
 function exportarBackup(){
   const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({clientes,entradas,saidas}));
   const dl=document.createElement('a'); dl.setAttribute("href",dataStr); dl.setAttribute("download","backup_bar.json"); dl.click();
