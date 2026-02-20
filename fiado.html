@@ -1,1 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tonel 333 - Fiado</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<header>
+  <img src="logo.png" alt="Tonel 333">
+  <h1>Fiado</h1>
+</header>
+
+<h3>Cadastrar Cliente</h3>
+<input type="text" id="nome" placeholder="Nome do Cliente">
+<input type="tel" id="telefone" placeholder="Telefone 5511999999999">
+<button onclick="cadastrarCliente()">Cadastrar</button>
+
+<h3>Movimentação</h3>
+<select id="clienteSelect"></select>
+<input type="number" id="valor" placeholder="Valor">
+<button onclick="adicionarConsumo()">Adicionar Consumo</button>
+<button onclick="registrarPagamento()">Registrar Pagamento</button>
+
+<h3>Clientes</h3>
+<div id="lista"></div>
+
+<script src="script-fiado.js"></script>
+</body>
+</html>
