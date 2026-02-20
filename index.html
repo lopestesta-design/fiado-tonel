@@ -225,9 +225,29 @@ function atualizarListaClientes(){
         Telefone: ${c.telefone}<br>
         <b>Saldo: R$ ${c.saldo.toFixed(2)}</b><br><br>
         <b>Histórico:</b><br>${historicoHTML || "Sem movimentações"}<br><br>
-        <button class="btn-whats" onclick="enviarWhatsApp(${i})">Enviar WhatsApp</button>
+        <button class="btn-whats" onclick="enviarWhatsApp(${i})">WhatsApp</button>
+        <button style="background:#ffc107;color:#000;margin-left:5px;" onclick="editarCliente(${i})">Editar</button>
+        <button style="background:#dc3545;color:#fff;margin-left:5px;" onclick="excluirCliente(${i})">Excluir</button>
       </div>`;
   });
+}
+
+function editarCliente(i){
+  let novoNome = prompt("Editar nome:", clientes[i].nome);
+  if(novoNome===null) return;
+  let novoTel = prompt("Editar telefone:", clientes[i].telefone);
+  if(novoTel===null) return;
+  clientes[i].nome = novoNome.trim() || clientes[i].nome;
+  clientes[i].telefone = novoTel.trim() || clientes[i].telefone;
+  salvarFiado();
+}
+
+function excluirCliente(i){
+  let confirmacao = confirm(`Tem certeza que deseja excluir o cliente "${clientes[i].nome}"?`);
+  if(confirmacao){
+    clientes.splice(i,1);
+    salvarFiado();
+  }
 }
 carregarFiado();
 
