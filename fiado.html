@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Fiado</title>
-<link rel="stylesheet" href="style.css">
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -67,6 +66,54 @@
     max-width: 600px;
   }
 
+  input, select, button {
+    width: 100%;
+    padding: 18px;
+    margin-top: 12px;
+    font-size: 18px;
+    border-radius: 10px;
+    border: none;
+  }
+
+  input, select {
+    background: #fff8dc; /* um tom claro para inputs */
+    color: #5c3a00;
+  }
+
+  button {
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .btn-add { background:#28a745; color:white; }
+  .btn-consumo { background:#dc2626; color:white; }
+  .btn-pagamento { background:#16a34a; color:white; }
+  .btn-whats { background:#25D366; color:white; }
+
+  .cliente {
+    background:#fff8dc;
+    padding:15px;
+    margin-top:15px;
+    border-radius:10px;
+    font-size:18px;
+    position: relative;
+  }
+
+  .cliente button.editar, .cliente button.excluir {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    font-weight: bold;
+    border: 2px double #5c3a00;
+    border-radius: 5px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .cliente button.editar { right: 50px; }
 </style>
 </head>
 <body>
@@ -79,8 +126,114 @@
 <a href="index.html" class="voltar">⬅ Voltar à Home</a>
 
 <div class="conteudo">
-  <!-- Conteúdo do controle de fiado -->
+  <h3>Cadastrar Cliente</h3>
+  <input type="text" id="nome" placeholder="Nome do Cliente">
+  <input type="tel" id="telefone" placeholder="Telefone 5511999999999">
+  <button type="button" class="btn-add" onclick="cadastrarCliente()">Cadastrar</button>
+
+  <h3>Movimentação</h3>
+  <select id="clienteSelect"></select>
+  <input type="number" id="valor" placeholder="Valor">
+  <button type="button" class="btn-consumo" onclick="registrarConsumo()">Adicionar Consumo</button>
+  <button type="button" class="btn-pagamento" onclick="registrarPagamento()">Registrar Pagamento</button>
+
+  <div id="lista"></div>
 </div>
+
+<script>
+let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+
+function salvar() {
+  localStorage.setItem('clientes', JSON.stringify(clientes));
+  atualizarLista();
+  atualizarSelect();
+}
+
+function cadastrarCliente() {
+  let nome = document.getElementById('nome').value.trim();
+  let telefone = document.getElementById('telefone').value.trim();
+  if(!nome) return alert('Digite o nome do cliente');
+  clientes.push({nome, telefone, saldo:0, historico:[]});
+  salvar();
+  document.getElementById('nome').value = '';
+  document.getElementById('telefone').value = '';
+}
+
+function atualizarSelect() {
+  let sel = document.getElementById('clienteSelect');
+  sel.innerHTML = '';
+  clientes.forEach((c,i)=>{
+    let opt = document.createElement('option');
+    opt.value=i; opt.textContent=c.nome; sel.appendChild(opt);
+  });
+}
+
+function atualizarLista() {
+  let lista = document.getElementById('lista');
+  lista.innerHTML = '';
+  clientes.forEach((c,i)=>{
+    let historicoHTML = c.historico.map(h => h.data + " - " + h.tipo + " - R$ " + h.valor.toFixed(2)).join("<br>");
+    lista.innerHTML += `
+      <div class="cliente">
+        <b>${c.nome}</b><br>
+        Telefone: ${c.telefone}<br>
+        <b>Saldo: R$ ${c.saldo.toFixed(2)}</b><br><br>
+        <b>Histórico:</b><br>${historicoHTML || "Sem movimentações"}<br><br>
+        <button class="btn-whats" onclick="enviarWhatsApp(${i})">WhatsApp</button>
+        <button class="editar" onclick="editarCliente(${i})">✎</button>
+        <button class="excluir" onclick="excluirCliente(${i})">×</button>
+      </div>
+    `;
+  });
+}
+
+function registrarConsumo() {
+  let sel = document.getElementById('clienteSelect');
+  let idx = sel.value;
+  let valor = parseFloat(document.getElementById('valor').value);
+  if(isNaN(valor) || valor<=0) return alert('Digite um valor válido');
+  clientes[idx].saldo += valor;
+  clientes[idx].historico.push({tipo:'Consumo', valor, data:new Date().toLocaleString()});
+  salvar();
+  document.getElementById('valor').value = '';
+}
+
+function registrarPagamento() {
+  let sel = document.getElementById('clienteSelect');
+  let idx = sel.value;
+  let valor = parseFloat(document.getElementById('valor').value);
+  if(isNaN(valor) || valor<=0) return alert('Digite um valor válido');
+  clientes[idx].saldo -= valor;
+  clientes[idx].historico.push({tipo:'Pagamento', valor, data:new Date().toLocaleString()});
+  salvar();
+  document.getElementById('valor').value = '';
+}
+
+function enviarWhatsApp(i) {
+  let c = clientes[i];
+  let msg = `Olá ${c.nome}, seu saldo no Tonel 333 é R$ ${c.saldo.toFixed(2)}. Chave PIX: 12345678900`;
+  let url = `https://api.whatsapp.com/send?phone=${c.telefone}&text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+}
+
+function excluirCliente(i) {
+  if(confirm('Deseja realmente excluir este cliente?')) {
+    clientes.splice(i,1);
+    salvar();
+  }
+}
+
+function editarCliente(i) {
+  let c = clientes[i];
+  let novoNome = prompt('Novo nome:', c.nome);
+  if(novoNome) c.nome = novoNome;
+  let novoTel = prompt('Novo telefone:', c.telefone);
+  if(novoTel) c.telefone = novoTel;
+  salvar();
+}
+
+salvar();
+</script>
 
 </body>
 </html>
