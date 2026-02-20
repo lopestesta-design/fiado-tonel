@@ -10,12 +10,12 @@ body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5
 .topo { display:flex; justify-content: flex-end; align-items:center; margin-bottom:20px; }
 .topo img { width:120px; }
 .voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
+h2 { margin-top:0; }
 label { display:block; margin-top:10px; }
 input, select { padding:5px; margin-top:5px; width:100%; max-width:300px; }
 button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 .listaEntradas { margin-top:20px; }
-.listaEntradas div { margin-bottom:10px; padding:8px; border:1px solid #5c3a00; border-radius:6px; display:flex; justify-content: space-between; align-items:center; }
-.listaEntradas button { padding:5px; font-size:14px; cursor:pointer; }
+.listaEntradas div { margin-bottom:10px; padding:8px; border:1px solid #5c3a00; border-radius:6px; }
 </style>
 </head>
 <body>
@@ -27,19 +27,25 @@ button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 
 <h2>Registrar Entrada</h2>
 <form id="formEntrada">
+  <label>Descrição:</label>
+  <input type="text" id="descricaoEntrada" required>
+
   <label>Valor:</label>
   <input type="number" id="valorEntrada" step="0.01" required>
 
-  <label>Forma de Pagamento:</label>
-  <select id="formaEntrada">
+  <label>Pagamento:</label>
+  <select id="pagamentoEntrada">
     <option value="dinheiro">Dinheiro</option>
     <option value="pix">Pix</option>
     <option value="debito">Débito</option>
     <option value="credito">Crédito</option>
+    <option value="fiado">Fiado</option>
   </select>
 
-  <label>Taxa do cartão (se houver):</label>
-  <input type="number" id="taxaEntrada" step="0.01" value="0">
+  <label>Cliente (se for Fiado):</label>
+  <select id="clienteFiadoEntrada">
+    <option value="">-- Selecione --</option>
+  </select>
 
   <label>Data:</label>
   <input type="date" id="dataEntrada">
@@ -53,30 +59,55 @@ button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 <script>
 document.getElementById('dataEntrada').value = new Date().toISOString().slice(0,10);
 
-// Listar entradas
+function carregarClientesEntrada(){
+  let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+  let select = document.getElementById('clienteFiadoEntrada');
+  select.innerHTML = '<option value="">-- Selecione --</option>';
+  clientes.forEach(c => {
+    let opt = document.createElement('option');
+    opt.value = c.nome;
+    opt.textContent = c.nome;
+    select.appendChild(opt);
+  });
+}
+
 function listarEntradas(){
   let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
   let div = document.getElementById('listaEntradas');
   div.innerHTML = '';
-  entradas.forEach((e, i)=>{
+  entradas.forEach(e=>{
     let eDiv = document.createElement('div');
-    eDiv.innerHTML = `${e.data} - R$ ${e.valor.toFixed(2)} - ${e.forma} - Taxa: R$ ${e.taxa.toFixed(2)}`;
+    eDiv.textContent = `${e.data} - ${e.descricao} - R$ ${e.valor.toFixed(2)} - ${e.pagamento}${e.cliente?(' - Cliente: '+e.cliente):''}`;
     div.appendChild(eDiv);
   });
 }
 
+carregarClientesEntrada();
 listarEntradas();
 
 document.getElementById('formEntrada').addEventListener('submit', function(e){
   e.preventDefault();
+  let descricao = document.getElementById('descricaoEntrada').value;
   let valor = parseFloat(document.getElementById('valorEntrada').value);
-  let forma = document.getElementById('formaEntrada').value;
-  let taxa = parseFloat(document.getElementById('taxaEntrada').value);
+  let pagamento = document.getElementById('pagamentoEntrada').value;
+  let cliente = document.getElementById('clienteFiadoEntrada').value;
   let data = document.getElementById('dataEntrada').value;
-  salvarEntrada(valor, forma, taxa, data);
-  alert('Entrada registrada!');
+
+  // Registrar entrada normal
+  let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+  entradas.push({descricao, valor, pagamento, cliente: pagamento==='fiado'?cliente:'', data});
+  localStorage.setItem('entradas', JSON.stringify(entradas));
+
+  // Se for Fiado, registrar automaticamente
+  if(pagamento==='fiado' && cliente){
+    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+    fiados.push({cliente, valor, saldo: valor, pagamento:"fiado", data});
+    localStorage.setItem('fiados', JSON.stringify(fiados));
+  }
+
   this.reset();
   document.getElementById('dataEntrada').value = new Date().toISOString().slice(0,10);
+  carregarClientesEntrada();
   listarEntradas();
 });
 </script>
