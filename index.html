@@ -11,9 +11,10 @@ body {
   background:#111; 
   color:white; 
   padding:10px; 
+  margin:0;
 }
 h1,h3 { text-align:center; margin-bottom:8px; }
-input,select,button { width:100%; padding:14px; margin-top:8px; font-size:16px; border-radius:8px; border:none; }
+input,select,button { width:100%; padding:16px; margin-top:8px; font-size:18px; border-radius:10px; border:none; }
 input,select { background:#222; color:white; }
 button { font-weight:bold; cursor:pointer; }
 .btn-add { background:#28a745; color:white; }
@@ -22,8 +23,21 @@ button { font-weight:bold; cursor:pointer; }
 .btn-whats { background:#25D366; color:white; }
 .btn-backup { background:#ff9800; color:white; }
 .btn-zerar { background:#f44336; color:white; }
-.cliente { background:#1e1e1e; padding:12px; margin-top:10px; border-radius:8px; font-size:16px; position:relative;}
+.cliente { 
+  background:#1e1e1e; 
+  padding:12px; 
+  margin-top:10px; 
+  border-radius:10px; 
+  font-size:16px; 
+  position:relative;
+  word-wrap: break-word;
+}
 #totalSaldo { text-align:center; font-size:18px; margin-bottom:10px; font-weight:bold; color:#ffcc00; }
+button.excluir, button.editar {
+  position:absolute; top:5px; width:32px; height:32px; border:none; border-radius:50%; font-weight:bold; cursor:pointer;
+}
+button.excluir { right:5px; background:red; color:white; }
+button.editar { right:45px; background:#f59e0b; color:white; }
 </style>
 </head>
 
@@ -47,9 +61,9 @@ button { font-weight:bold; cursor:pointer; }
 <input type="text" id="buscaCliente" placeholder="Digite o nome do cliente..." onkeyup="filtrarClientes()">
 
 <h3>Backup</h3>
-<button class="btn-backup" onclick="exportarBackupLocal()">Salvar Backup Manual</button>
-<button class="btn-backup" onclick="restaurarBackup()">Restaurar Backup Automático</button>
-<button class="btn-zerar" onclick="zerarClientes()">Zerar todos os clientes</button>
+<button class="btn-backup" onclick="exportarBackupLocal()">Salvar Backup</button>
+<button class="btn-backup" onclick="restaurarBackup()">Restaurar Backup</button>
+<button class="btn-zerar" onclick="zerarClientes()">Zerar todos</button>
 
 <div id="lista"></div>
 
@@ -63,26 +77,20 @@ function salvar(){
   atualizarLista(); atualizarSelect(); atualizarTotal();
 }
 
-function carregar(){
-  clientes = JSON.parse(localStorage.getItem("clientes")) || [];
-  atualizarLista(); atualizarSelect(); atualizarTotal();
-}
+function carregar(){ clientes = JSON.parse(localStorage.getItem("clientes")) || []; atualizarLista(); atualizarSelect(); atualizarTotal(); }
 
 function cadastrarCliente(){
   let nome = document.getElementById("nome").value.trim();
   let telefone = document.getElementById("telefone").value.trim();
   if(!nome||!telefone){alert("Preencha todos os campos");return;}
   clientes.push({nome,telefone,saldo:0,historico:[]});
-  document.getElementById("nome").value="";document.getElementById("telefone").value="";
+  document.getElementById("nome").value=""; document.getElementById("telefone").value="";
   salvar();
 }
 
 function atualizarSelect(){
   let select=document.getElementById("clienteSelect"); select.innerHTML="";
-  clientes.forEach(c=>{
-    let option=document.createElement("option"); option.value=c.nome; option.textContent=c.nome;
-    select.appendChild(option);
-  });
+  clientes.forEach(c=>{let option=document.createElement("option"); option.value=c.nome; option.textContent=c.nome; select.appendChild(option);});
 }
 
 function adicionarConsumo(){
@@ -105,8 +113,10 @@ function registrarPagamento(){
 
 function filtrarClientes(){
   let filtro=document.getElementById("buscaCliente").value.toLowerCase();
-  let divs=document.querySelectorAll("#lista .cliente");
-  divs.forEach(div=>{let nome=div.querySelector("b").textContent.toLowerCase(); div.style.display=nome.includes(filtro)?"block":"none";});
+  document.querySelectorAll("#lista .cliente").forEach(div=>{
+    let nome=div.querySelector("b").textContent.toLowerCase();
+    div.style.display=nome.includes(filtro)?"block":"none";
+  });
 }
 
 function enviarWhatsApp(index){
@@ -122,12 +132,18 @@ function enviarWhatsApp(index){
 
 function excluirCliente(index){if(confirm("Deseja realmente excluir este cliente?")){clientes.splice(index,1); salvar();}}
 function editarCliente(index){let n=prompt("Editar nome:",clientes[index].nome); if(n===null)return; let t=prompt("Editar telefone:",clientes[index].telefone); if(t===null)return; clientes[index].nome=n.trim(); clientes[index].telefone=t.trim(); salvar();}
-function atualizarLista(){let lista=document.getElementById("lista"); lista.innerHTML=""; clientes.forEach((c,i)=>{ let hHTML=c.historico.map(h=>h.data+" - "+h.tipo+" - R$ "+h.valor.toFixed(2)).join("<br>");
-lista.innerHTML+=`<div class="cliente" style="position:relative; color:${c.saldo>LIMITE_SALDO?'#ff4444':'white'};">
-<button onclick="excluirCliente(${i})" style="position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:50%; width:28px; height:28px; font-weight:bold;">X</button>
-<button onclick="editarCliente(${i})" style="position:absolute; top:5px; right:40px; background:#f59e0b; color:white; border:none; border-radius:50%; width:28px; height:28px; font-weight:bold;">✏</button>
-<b>${c.nome}</b><br>Telefone: ${c.telefone}<br><b>Saldo: R$ ${c.saldo.toFixed(2)}</b><br><br><b>Histórico:</b><br>${hHTML || "Sem movimentações"}<br><br>
-<button class="btn-whats" onclick="enviarWhatsApp(${i})">Enviar WhatsApp</button></div>`;});}
+
+function atualizarLista(){
+  let lista=document.getElementById("lista"); lista.innerHTML="";
+  clientes.forEach((c,i)=>{
+    let hHTML=c.historico.map(h=>h.data+" - "+h.tipo+" - R$ "+h.valor.toFixed(2)).join("<br>");
+    lista.innerHTML+=`<div class="cliente" style="color:${c.saldo>LIMITE_SALDO?'#ff4444':'white'};">
+      <button class="excluir" onclick="excluirCliente(${i})">X</button>
+      <button class="editar" onclick="editarCliente(${i})">✏</button>
+      <b>${c.nome}</b><br>Telefone: ${c.telefone}<br><b>Saldo: R$ ${c.saldo.toFixed(2)}</b><br><br><b>Histórico:</b><br>${hHTML || "Sem movimentações"}<br><br>
+      <button class="btn-whats" onclick="enviarWhatsApp(${i})">Enviar WhatsApp</button></div>`;
+  });
+}
 
 function atualizarTotal(){let total=clientes.reduce((s,c)=>s+c.saldo,0);document.getElementById("totalSaldo").textContent="Total Geral: R$ "+total.toFixed(2);}
 function restaurarBackup(){let b=localStorage.getItem("backup_clientes"); if(!b){alert("Nenhum backup encontrado!");return;} clientes=JSON.parse(b); salvar(); alert("Backup restaurado com sucesso!");}
