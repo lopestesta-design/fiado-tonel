@@ -16,7 +16,9 @@ input, select { padding:5px; margin-top:5px; width:100%; max-width:300px; }
 button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 .listaFiado { margin-top:20px; }
 .listaFiado div { margin-bottom:10px; padding:8px; border:1px solid #5c3a00; border-radius:6px; display:flex; justify-content: space-between; align-items:center; }
-.listaFiado button { padding:5px; font-size:14px; cursor:pointer; }
+.listaFiado .info { flex:1; }
+.listaFiado button { padding:5px; font-size:14px; cursor:pointer; margin-left:5px; }
+.pago { color: green; font-weight:bold; }
 </style>
 </head>
 <body>
@@ -54,10 +56,8 @@ button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 <div class="listaFiado" id="listaFiado"></div>
 
 <script>
-// Define data de hoje como padrão
 document.getElementById('dataFiado').value = new Date().toISOString().slice(0,10);
 
-// Função para preencher clientes no select
 function carregarClientesFiado(){
   let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
   let select = document.getElementById('clienteFiado');
@@ -70,40 +70,62 @@ function carregarClientesFiado(){
   });
 }
 
-// Função para listar fiados
 function listarFiados(){
   let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
   let div = document.getElementById('listaFiado');
   div.innerHTML = '';
   fiados.forEach((f, i)=>{
     let fDiv = document.createElement('div');
-    fDiv.innerHTML = `${f.data} - ${f.cliente} - R$ ${f.valor.toFixed(2)} - ${f.pagamento} 
-      <button onclick="enviarWhatsApp(${i})">WhatsApp</button>`;
+    let infoDiv = document.createElement('div');
+    infoDiv.className = 'info';
+    let status = f.saldo <= 0 ? `<span class="pago">Pago</span>` : `R$ ${f.saldo.toFixed(2)} restante`;
+    infoDiv.innerHTML = `${f.data} - ${f.cliente} - Valor: R$ ${f.valor.toFixed(2)} - ${f.pagamento} - ${status}`;
+    fDiv.appendChild(infoDiv);
+
+    if(f.saldo > 0){
+      let btnBaixar = document.createElement('button');
+      btnBaixar.textContent = 'Baixar';
+      btnBaixar.onclick = ()=>{
+        let pago = parseFloat(prompt(`Quanto ${f.cliente} está pagando?`, f.saldo));
+        if(!isNaN(pago) && pago>0){
+          f.saldo -= pago;
+          if(f.saldo < 0) f.saldo = 0;
+          let fiadosAtual = JSON.parse(localStorage.getItem('fiados')) || [];
+          fiadosAtual[i] = f;
+          localStorage.setItem('fiados', JSON.stringify(fiadosAtual));
+          listarFiados();
+        }
+      };
+      fDiv.appendChild(btnBaixar);
+    }
+
+    let btnWhats = document.createElement('button');
+    btnWhats.textContent = 'WhatsApp';
+    btnWhats.onclick = ()=>{
+      let msg = `Olá ${f.cliente}, você tem um consumo de R$ ${f.saldo.toFixed(2)} no Tonel 333. Obrigado!`;
+      let url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(url,'_blank');
+    };
+    fDiv.appendChild(btnWhats);
+
     div.appendChild(fDiv);
   });
 }
 
-// Função para enviar WhatsApp
-function enviarWhatsApp(index){
-  let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-  let f = fiados[index];
-  let msg = `Olá ${f.cliente}, você tem um consumo de R$ ${f.valor.toFixed(2)} no Tonel 333. Obrigado!`;
-  let url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-  window.open(url,'_blank');
-}
-
-// Chama ao carregar a página
 carregarClientesFiado();
 listarFiados();
 
 document.getElementById('formFiado').addEventListener('submit', function(e){
   e.preventDefault();
   let cliente = document.getElementById('clienteFiado').value;
-  let valor = document.getElementById('valorFiado').value;
+  let valor = parseFloat(document.getElementById('valorFiado').value);
   let pagamento = document.getElementById('pagamentoFiado').value;
   let data = document.getElementById('dataFiado').value;
-  salvarFiado(cliente, valor, pagamento, data);
-  alert('Fiado registrado!');
+
+  let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+  fiados.push({cliente, valor, pagamento, saldo: valor, data});
+  localStorage.setItem('fiados', JSON.stringify(fiados));
+
   this.reset();
   document.getElementById('dataFiado').value = new Date().toISOString().slice(0,10);
   carregarClientesFiado();
