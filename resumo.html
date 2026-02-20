@@ -4,83 +4,48 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Resumo</title>
-<link rel="stylesheet" href="style.css">
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #e6b800;
-    color: #5c3a00;
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .topo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    max-width: 600px;
-    margin-bottom: 20px;
-    position: relative;
-  }
-
-  .topo img {
-    width: 80px;
-    height: auto;
-    position: absolute;
-    left: 0;
-  }
-
-  .topo h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin: 0 auto;
-    text-align: center;
-    flex: 1;
-  }
-
-  .voltar {
-    align-self: flex-start;
-    padding: 10px 15px;
-    margin-bottom: 20px;
-    font-weight: 900;
-    font-size: 16px;
-    border: 4px double #5c3a00;
-    border-radius: 10px;
-    background: transparent;
-    color: #5c3a00;
-    text-decoration: none;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .voltar:hover {
-    background: rgba(92, 58, 0, 0.1);
-  }
-
-  .conteudo {
-    width: 100%;
-    max-width: 600px;
-  }
-
+body{font-family:Arial;margin:0;padding:20px;background:#e6b800;color:#5c3a00;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+.topo{display:flex;align-items:center;justify-content:center;width:100%;max-width:600px;margin-bottom:20px;position:relative;}
+.topo img{width:80px;position:absolute;left:0;}
+.topo h2{font-size:24px;font-weight:bold;margin:0 auto;text-align:center;flex:1;}
+.voltar{align-self:flex-start;padding:10px 15px;margin-bottom:20px;font-weight:900;font-size:16px;border:4px double #5c3a00;border-radius:10px;background:transparent;color:#5c3a00;text-decoration:none;cursor:pointer;transition:0.2s;}
+.voltar:hover{background:rgba(92,58,0,0.1);}
+.conteudo{width:100%;max-width:600px;}
+.resultado{background:#fff8dc;padding:15px;margin-top:15px;border-radius:10px;font-size:18px;}
 </style>
 </head>
 <body>
 
 <header class="topo">
   <img src="logo.png" alt="Tonel 333">
-  <h2>Resumo</h2>
+  <h2>Resumo Financeiro</h2>
 </header>
 
 <a href="index.html" class="voltar">⬅ Voltar à Home</a>
 
 <div class="conteudo">
-  <!-- Conteúdo do resumo financeiro -->
+  <div class="resultado" id="resumo"></div>
 </div>
+
+<script>
+let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+
+function atualizarResumo(){
+  let totalEntradas = entradas.reduce((acc,e)=>acc+e.valor,0);
+  let totalSaidas = saidas.reduce((acc,s)=>acc+s.valor,0);
+  let diferenca = totalEntradas - totalSaidas;
+  let div = document.getElementById('resumo');
+  div.innerHTML = `
+    Total Entradas: R$ ${totalEntradas.toFixed(2)}<br>
+    Total Saídas: R$ ${totalSaidas.toFixed(2)}<br>
+    Diferença: <b>${diferenca.toFixed(2)}</b>
+  `;
+}
+
+atualizarResumo();
+</script>
 
 </body>
 </html>
