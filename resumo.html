@@ -3,106 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonel 333 - Resumo Avançado</title>
+<title>Tonel 333 - Resumo</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #e6b800;
-  color: #5c3a00;
-  margin: 0;
-  padding: 20px;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.topo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 20px;
-  position: relative;
-}
-.topo img { width: 80px; position: absolute; left: 0; }
-.topo h2 { font-size: 24px; font-weight: bold; margin: 0 auto; text-align: center; flex: 1; }
-
-.voltar {
-  align-self: flex-start;
-  padding: 10px 15px;
-  margin-bottom: 20px;
-  font-weight: 900;
-  font-size: 16px;
-  border: 4px double #5c3a00;
-  border-radius: 10px;
-  background: transparent;
-  color: #5c3a00;
-  text-decoration: none;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.voltar:hover { background: rgba(92,58,0,0.1); }
-
-.conteudo { width: 100%; max-width: 600px; }
-.resultado { background: #fff8dc; padding: 15px; margin-top: 15px; border-radius: 10px; font-size: 18px; }
-.filtro { margin-top: 10px; font-size: 16px; padding: 10px; border-radius: 8px; border: none; background: #fff8dc; color: #5c3a00; }
-
-canvas { margin-top: 20px; max-width: 100%; }
+body { font-family: Arial,sans-serif; background:#e6b800; color:#5c3a00; margin:0; padding:20px; display:flex; flex-direction:column; align-items:center; }
+.topo { display:flex; align-items:center; justify-content:center; width:100%; max-width:600px; margin-bottom:20px; position:relative; }
+.topo img { width:80px; position:absolute; left:0; }
+.topo h2 { font-size:24px; font-weight:bold; margin:0 auto; text-align:center; flex:1; }
+.voltar { align-self:flex-start; padding:10px 15px; margin-bottom:20px; font-weight:900; font-size:16px; border:4px double #5c3a00; border-radius:10px; background:transparent; color:#5c3a00; text-decoration:none; cursor:pointer; }
+.conteudo { width:100%; max-width:600px; }
+.resultado { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; font-size:18px; }
+.filtro { margin-top:10px; font-size:16px; padding:10px; border-radius:8px; border:none; background:#fff8dc; color:#5c3a00; }
+canvas { margin-top:20px; max-width:100%; }
 </style>
 </head>
 <body>
 
 <header class="topo">
-  <img src="logo.png" alt="Tonel 333">
-  <h2>Resumo Avançado</h2>
+<img src="logo.png" alt="Tonel 333">
+<h2>Resumo Financeiro</h2>
 </header>
 
 <a href="index.html" class="voltar">⬅ Voltar à Home</a>
 
 <div class="conteudo">
-  <select id="filtroTempo" class="filtro" onchange="atualizarResumoGeral()">
-    <option value="tudo">Todos os períodos</option>
-    <option value="semana">Última Semana</option>
-    <option value="mes">Último Mês</option>
-    <option value="ano">Último Ano</option>
-  </select>
+<select id="filtroTempo" class="filtro" onchange="atualizarResumo()">
+<option value="tudo">Todos os períodos</option>
+<option value="semana">Última Semana</option>
+<option value="mes">Último Mês</option>
+<option value="ano">Último Ano</option>
+</select>
 
-  <div class="resultado" id="resumoGeral"></div>
-  <canvas id="graficoResumo" width="400" height="200"></canvas>
+<div class="resultado" id="resumoGeral"></div>
+<canvas id="graficoResumo" width="400" height="200"></canvas>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Dados armazenados
 let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
 let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
 let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
 
-// Função para filtrar por período
+// filtrar por período
 function filtrarPorPeriodo(array, periodo) {
-  if(periodo === 'tudo') return array;
+  if(periodo==='tudo') return array;
   const agora = new Date();
   return array.filter(item => {
     const data = new Date(item.data);
-    if(periodo === 'semana') {
-      const diff = (agora - data) / (1000*60*60*24);
-      return diff <= 7;
-    } else if(periodo === 'mes') {
-      return data.getMonth() === agora.getMonth() && data.getFullYear() === agora.getFullYear();
-    } else if(periodo === 'ano') {
-      return data.getFullYear() === agora.getFullYear();
-    }
+    if(periodo==='semana') return (agora - data)/(1000*60*60*24) <=7;
+    if(periodo==='mes') return data.getMonth()===agora.getMonth() && data.getFullYear()===agora.getFullYear();
+    if(periodo==='ano') return data.getFullYear()===agora.getFullYear();
   });
 }
 
-// Atualizar resumo
-function atualizarResumoGeral() {
+function atualizarResumo() {
   const periodo = document.getElementById('filtroTempo').value;
 
   let fiadoFiltrado = clientes.map(c => ({saldo:c.saldo, historico: filtrarPorPeriodo(c.historico, periodo)}));
-  let totalFiado = fiadoFiltrado.reduce((acc,c)=>acc + c.saldo, 0);
+  let totalFiado = fiadoFiltrado.reduce((acc,c)=>acc + c.saldo,0);
 
   let entradasFiltradas = filtrarPorPeriodo(entradas, periodo);
   let saidasFiltradas = filtrarPorPeriodo(saidas, periodo);
@@ -118,20 +75,19 @@ function atualizarResumoGeral() {
     <b>Saldo Geral:</b> R$ ${saldoGeral.toFixed(2)}
   `;
 
-  // Gráfico
   const ctx = document.getElementById('graficoResumo').getContext('2d');
   if(window.grafico) window.grafico.destroy();
   window.grafico = new Chart(ctx, {
     type:'bar',
     data:{
       labels:['Fiado','Entradas','Saídas','Saldo Geral'],
-      datasets:[{label:'Valores (R$)',data:[totalFiado,totalEntradas,totalSaidas,saldoGeral],backgroundColor:['#dc2626','#16a34a','#f59e0b','#5c3a00']}]
+      datasets:[{label:'R$',data:[totalFiado,totalEntradas,totalSaidas,saldoGeral],backgroundColor:['#dc2626','#16a34a','#f59e0b','#5c3a00']}]
     },
     options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
   });
 }
 
-atualizarResumoGeral();
+atualizarResumo();
 </script>
 
 </body>
