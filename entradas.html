@@ -1,114 +1,88 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Entradas - Tonel 333</title>
-<script src="app.js"></script>
+<title>Entradas</title>
 <style>
-body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5c3a00; }
-.topo { display:flex; justify-content: flex-end; align-items:center; margin-bottom:20px; }
-.topo img { width:120px; }
-.voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
-h2 { margin-top:0; }
-label { display:block; margin-top:10px; }
-input, select { padding:5px; margin-top:5px; width:100%; max-width:300px; }
-button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
-.listaEntradas { margin-top:20px; }
-.listaEntradas div { margin-bottom:10px; padding:8px; border:1px solid #5c3a00; border-radius:6px; }
+body { font-family:Arial; padding:20px; background:#fff8dc; color:#5c3a00; }
+.topo { display:flex; justify-content: space-between; align-items:center; margin-bottom:20px; }
+.logo { width:100px; }
+.voltar { font-size:22px; text-decoration:none; color:#5c3a00; }
+input, select { width:100%; padding:8px; margin-top:5px; margin-bottom:10px; }
+button { padding:10px; font-weight:bold; }
 </style>
 </head>
 <body>
 
 <div class="topo">
-  <a href="index.html" class="voltar">←</a>
-  <img src="logo.png" alt="Tonel 333">
+<a href="index.html" class="voltar">←</a>
+<img src="logo.png" class="logo">
 </div>
 
-<h2>Registrar Entrada</h2>
+<h2>Registrar Venda</h2>
+
 <form id="formEntrada">
-  <label>Descrição:</label>
-  <input type="text" id="descricaoEntrada" required>
+<label>Descrição:</label>
+<input type="text" id="descricao" required>
 
-  <label>Valor:</label>
-  <input type="number" id="valorEntrada" step="0.01" required>
+<label>Valor:</label>
+<input type="number" step="0.01" id="valor" required>
 
-  <label>Pagamento:</label>
-  <select id="pagamentoEntrada">
-    <option value="dinheiro">Dinheiro</option>
-    <option value="pix">Pix</option>
-    <option value="debito">Débito</option>
-    <option value="credito">Crédito</option>
-    <option value="fiado">Fiado</option>
-  </select>
+<label>Forma de Pagamento:</label>
+<select id="pagamento">
+<option value="dinheiro">Dinheiro</option>
+<option value="pix">Pix</option>
+<option value="debito">Débito</option>
+<option value="credito">Crédito</option>
+<option value="fiado">Fiado</option>
+</select>
 
-  <label>Cliente (se for Fiado):</label>
-  <select id="clienteFiadoEntrada">
-    <option value="">-- Selecione --</option>
-  </select>
+<label>Cliente (se for fiado):</label>
+<select id="cliente"></select>
 
-  <label>Data:</label>
-  <input type="date" id="dataEntrada">
+<label>Data:</label>
+<input type="date" id="data">
 
-  <button type="submit">Registrar</button>
+<button type="submit">Salvar</button>
 </form>
 
-<h3>Registros de Entradas</h3>
-<div class="listaEntradas" id="listaEntradas"></div>
-
 <script>
-document.getElementById('dataEntrada').value = new Date().toISOString().slice(0,10);
+document.getElementById("data").value = new Date().toISOString().slice(0,10);
 
-function carregarClientesEntrada(){
-  let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-  let select = document.getElementById('clienteFiadoEntrada');
-  select.innerHTML = '<option value="">-- Selecione --</option>';
-  clientes.forEach(c => {
-    let opt = document.createElement('option');
-    opt.value = c.nome;
-    opt.textContent = c.nome;
-    select.appendChild(opt);
-  });
+function carregarClientes(){
+    let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+    let select = document.getElementById('cliente');
+    select.innerHTML = "<option value=''>Selecione</option>";
+    clientes.forEach(c=>{
+        select.innerHTML += `<option value="${c.nome}">${c.nome}</option>`;
+    });
 }
-
-function listarEntradas(){
-  let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
-  let div = document.getElementById('listaEntradas');
-  div.innerHTML = '';
-  entradas.forEach(e=>{
-    let eDiv = document.createElement('div');
-    eDiv.textContent = `${e.data} - ${e.descricao} - R$ ${e.valor.toFixed(2)} - ${e.pagamento}${e.cliente?(' - Cliente: '+e.cliente):''}`;
-    div.appendChild(eDiv);
-  });
-}
-
-carregarClientesEntrada();
-listarEntradas();
+carregarClientes();
 
 document.getElementById('formEntrada').addEventListener('submit', function(e){
-  e.preventDefault();
-  let descricao = document.getElementById('descricaoEntrada').value;
-  let valor = parseFloat(document.getElementById('valorEntrada').value);
-  let pagamento = document.getElementById('pagamentoEntrada').value;
-  let cliente = document.getElementById('clienteFiadoEntrada').value;
-  let data = document.getElementById('dataEntrada').value;
+    e.preventDefault();
 
-  // Registrar entrada normal
-  let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
-  entradas.push({descricao, valor, pagamento, cliente: pagamento==='fiado'?cliente:'', data});
-  localStorage.setItem('entradas', JSON.stringify(entradas));
+    let descricao = descricao.value;
+    let valor = parseFloat(document.getElementById('valor').value);
+    let pagamento = pagamento.value;
+    let cliente = cliente.value;
+    let data = data.value;
 
-  // Se for Fiado, registrar automaticamente
-  if(pagamento==='fiado' && cliente){
-    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-    fiados.push({cliente, valor, saldo: valor, pagamento:"fiado", data});
-    localStorage.setItem('fiados', JSON.stringify(fiados));
-  }
+    let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+    entradas.push({descricao, valor, pagamento, cliente, data});
+    localStorage.setItem('entradas', JSON.stringify(entradas));
 
-  this.reset();
-  document.getElementById('dataEntrada').value = new Date().toISOString().slice(0,10);
-  carregarClientesEntrada();
-  listarEntradas();
+    // SE FOR FIADO
+    if(pagamento === "fiado" && cliente){
+        let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+        fiados.push({cliente, valor, saldo:valor, data});
+        localStorage.setItem('fiados', JSON.stringify(fiados));
+    }
+
+    alert("Venda registrada!");
+    this.reset();
+    document.getElementById("data").value = new Date().toISOString().slice(0,10);
 });
 </script>
 
