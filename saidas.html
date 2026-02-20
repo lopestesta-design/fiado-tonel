@@ -5,68 +5,73 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Saídas</title>
 <style>
-/* Mesma estilização do Entradas */
-body{font-family:Arial;margin:0;padding:20px;background:#e6b800;color:#5c3a00;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
-.topo{display:flex;align-items:center;justify-content:center;width:100%;max-width:600px;margin-bottom:20px;position:relative;}
-.topo img{width:80px;position:absolute;left:0;}
-.topo h2{font-size:24px;font-weight:bold;margin:0 auto;text-align:center;flex:1;}
-.voltar{align-self:flex-start;padding:10px 15px;margin-bottom:20px;font-weight:900;font-size:16px;border:4px double #5c3a00;border-radius:10px;background:transparent;color:#5c3a00;text-decoration:none;cursor:pointer;transition:0.2s;}
-.voltar:hover{background:rgba(92,58,0,0.1);}
-.conteudo{width:100%;max-width:600px;}
-input,select,button{width:100%;padding:18px;margin-top:12px;font-size:18px;border-radius:10px;border:none;}
-input,select{background:#fff8dc;color:#5c3a00;}
-button{font-weight:bold;cursor:pointer;}
-.cliente{background:#fff8dc;padding:15px;margin-top:15px;border-radius:10px;font-size:18px;position:relative;}
+body { font-family: Arial,sans-serif; background:#e6b800; color:#5c3a00; margin:0; padding:20px; }
+.topo { display:flex; align-items:center; justify-content:center; width:100%; max-width:600px; margin-bottom:20px; position:relative; }
+.topo img { width:80px; position:absolute; left:0; }
+.topo h2 { font-size:24px; font-weight:bold; margin:0 auto; text-align:center; flex:1; }
+.voltar { align-self:flex-start; padding:10px 15px; margin-bottom:20px; font-weight:900; font-size:16px; border:4px double #5c3a00; border-radius:10px; background:transparent; color:#5c3a00; text-decoration:none; cursor:pointer; }
+.conteudo { width:100%; max-width:600px; }
+input, button { width:100%; padding:12px; margin-top:10px; font-size:16px; border-radius:8px; border:none; }
+input { background:#fff8dc; color:#5c3a00; }
+button { font-weight:bold; cursor:pointer; }
+.btn-add { background:#dc2626; color:white; }
+.saida { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; }
+.icon { cursor:pointer; margin-left:5px; color:#dc2626; font-weight:bold; }
 </style>
 </head>
 <body>
 
 <header class="topo">
-  <img src="logo.png" alt="Tonel 333">
-  <h2>Saídas</h2>
+<img src="logo.png" alt="Tonel 333">
+<h2>Saídas</h2>
 </header>
 
 <a href="index.html" class="voltar">⬅ Voltar à Home</a>
 
 <div class="conteudo">
-  <h3>Registrar Saída</h3>
-  <input type="text" id="descricao" placeholder="Descrição da saída">
-  <input type="number" id="valor" placeholder="Valor">
-  <select id="tipoPagto">
-    <option value="Dinheiro">Dinheiro</option>
-    <option value="Pix">PIX</option>
-    <option value="Débito">Débito</option>
-    <option value="Crédito">Crédito</option>
-  </select>
-  <button onclick="registrarSaida()">Adicionar Saída</button>
+<h3>Adicionar Saída</h3>
+<input type="text" id="descricaoSaida" placeholder="Descrição">
+<input type="number" id="valorSaida" placeholder="Valor">
+<input type="date" id="dataSaida" value="">
+<button class="btn-add" onclick="adicionarSaida()">Adicionar</button>
 
-  <div id="listaSaidas"></div>
+<div id="listaSaidas"></div>
 </div>
 
 <script>
 let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
 
-function salvarSaidas(){ localStorage.setItem('saidas',JSON.stringify(saidas)); atualizarLista(); }
-
-function registrarSaida(){
-  let desc=document.getElementById('descricao').value.trim();
-  let val=parseFloat(document.getElementById('valor').value);
-  let tipo=document.getElementById('tipoPagto').value;
-  if(!desc||isNaN(val)||val<=0)return alert('Preencha corretamente');
-  saidas.push({descricao:desc,valor:val,tipo:tipo,data:new Date().toLocaleString()});
-  salvarSaidas();
-  document.getElementById('descricao').value='';
-  document.getElementById('valor').value='';
+function atualizarSaidas() {
+  let lista = document.getElementById("listaSaidas");
+  lista.innerHTML = "";
+  saidas.forEach((s,i)=>{
+    lista.innerHTML += `
+      <div class="saida">
+        ${s.data} - ${s.descricao} - R$ ${s.valor.toFixed(2)}
+        <span class="icon" onclick="excluirSaida(${i})">x</span>
+      </div>
+    `;
+  });
+  localStorage.setItem('saidas', JSON.stringify(saidas));
 }
 
-function atualizarLista(){
-  let lista=document.getElementById('listaSaidas'); lista.innerHTML='';
-  saidas.forEach((s,i)=>{ lista.innerHTML+=`<div class="cliente">${s.data} - ${s.tipo} - ${s.descricao} - R$ ${s.valor.toFixed(2)} <button onclick="excluirSaida(${i})">×</button></div>`; });
+function adicionarSaida() {
+  let desc = document.getElementById("descricaoSaida").value.trim();
+  let val = parseFloat(document.getElementById("valorSaida").value);
+  let data = document.getElementById("dataSaida").value || new Date().toISOString().split("T")[0];
+  if(!desc || !val) return alert("Informe descrição e valor");
+  saidas.push({descricao:desc, valor:val, data:data});
+  atualizarSaidas();
 }
 
-function excluirSaida(i){ if(confirm('Deseja excluir esta saída?')){ saidas.splice(i,1); salvarSaidas(); } }
+function excluirSaida(i) {
+  if(confirm("Confirma exclusão da saída?")) {
+    saidas.splice(i,1);
+    atualizarSaidas();
+  }
+}
 
-atualizarLista();
+atualizarSaidas();
 </script>
 
 </body>
