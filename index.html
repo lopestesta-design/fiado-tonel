@@ -8,11 +8,12 @@
 <style>
   body {
     font-family: Arial, sans-serif;
-    background: #ffcc00; /* Fundo amarelo */
-    color: #111;
+    background: #e6b800; /* amarelo mais escuro */
+    color: #5c3a00; /* marrom da logo */
     text-align: center;
     margin: 0;
-    height: 100vh;
+    padding: 20px;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -20,36 +21,35 @@
   }
 
   header img {
-    width: 300px; /* Logo maior */
+    width: 300px; /* logo grande */
     height: auto;
     margin-bottom: 50px;
   }
 
+  .botoes {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* duas colunas */
+    gap: 20px;
+    width: 100%;
+    max-width: 500px;
+  }
+
   .botao {
-    display: block;
-    width: 70%;
-    max-width: 250px;
-    margin: 10px auto;
-    padding: 12px;
+    padding: 15px;
     font-size: 18px;
     font-weight: bold;
-    border: none;
+    border: 3px double #5c3a00; /* borda dupla marrom */
     border-radius: 10px;
-    cursor: pointer;
+    background: transparent;
+    color: #5c3a00;
     text-decoration: none;
-    color: white;
-    opacity: 0.9;
+    cursor: pointer;
     transition: 0.2s;
   }
 
   .botao:hover {
-    opacity: 1;
+    background: rgba(92, 58, 0, 0.1); /* leve efeito hover */
   }
-
-  .fiado { background: #28a745; }
-  .entradas { background: #16a34a; }
-  .saidas { background: #dc2626; }
-  .resumo { background: #111; }
 </style>
 </head>
 <body>
@@ -58,10 +58,12 @@
   <img src="logo.png" alt="Tonel 333">
 </header>
 
-<a href="fiado.html" class="botao fiado">Fiado</a>
-<a href="entradas.html" class="botao entradas">Entradas</a>
-<a href="saidas.html" class="botao saidas">Saídas</a>
-<a href="resumo.html" class="botao resumo">Resumo Financeiro</a>
+<div class="botoes">
+  <a href="fiado.html" class="botao">Fiado</a>
+  <a href="entradas.html" class="botao">Entradas</a>
+  <a href="saidas.html" class="botao">Saídas</a>
+  <a href="resumo.html" class="botao">Resumo</a>
+</div>
 
 </body>
 </html>
