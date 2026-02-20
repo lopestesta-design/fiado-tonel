@@ -47,24 +47,31 @@ input,select,button{padding:6px;margin:5px 0;width:100%;}
 
 document.getElementById('data').valueAsDate = new Date();
 
-function verCliente(){
-    let pag = document.getElementById('pagamento').value;
-    let select = document.getElementById('cliente');
-    if(pag==="fiado"){
-        select.style.display="block";
-        carregarClientes();
-    }else{
-        select.style.display="none";
-    }
-}
-
 function carregarClientes(){
     let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
     let select = document.getElementById('cliente');
     select.innerHTML="";
+
+    if(clientes.length === 0){
+        select.innerHTML="<option>Nenhum cliente cadastrado</option>";
+        return;
+    }
+
     clientes.forEach(c=>{
         select.innerHTML+=`<option value="${c.nome}">${c.nome}</option>`;
     });
+}
+
+function verCliente(){
+    let pag = document.getElementById('pagamento').value;
+    let select = document.getElementById('cliente');
+
+    if(pag==="fiado"){
+        carregarClientes();
+        select.style.display="block";
+    }else{
+        select.style.display="none";
+    }
 }
 
 function salvar(){
@@ -79,6 +86,11 @@ function salvar(){
     let cliente = document.getElementById('cliente').value;
 
     if(!descricao || isNaN(valor)) return;
+
+    if(pagamento==="fiado" && (!cliente || cliente==="Nenhum cliente cadastrado")){
+        alert("Cadastre um cliente primeiro.");
+        return;
+    }
 
     entradas.push({data,descricao,valor,pagamento,cliente});
     localStorage.setItem('entradas',JSON.stringify(entradas));
@@ -126,9 +138,11 @@ function editar(i){
 
     if(e.pagamento==="fiado"){
         let f = fiados.find(x=>x.cliente===e.cliente);
-        let c = f.consumos.find(x=>x.data===e.data && x.valor===e.valor);
-        if(c) c.valor=novoValor;
-        localStorage.setItem('fiados',JSON.stringify(fiados));
+        if(f){
+            let c = f.consumos.find(x=>x.data===e.data && x.valor===e.valor);
+            if(c) c.valor=novoValor;
+            localStorage.setItem('fiados',JSON.stringify(fiados));
+        }
     }
 
     e.valor=novoValor;
@@ -145,8 +159,10 @@ function excluir(i){
 
     if(e.pagamento==="fiado"){
         let f = fiados.find(x=>x.cliente===e.cliente);
-        f.consumos = f.consumos.filter(x=>!(x.data===e.data && x.valor===e.valor));
-        localStorage.setItem('fiados',JSON.stringify(fiados));
+        if(f){
+            f.consumos = f.consumos.filter(x=>!(x.data===e.data && x.valor===e.valor));
+            localStorage.setItem('fiados',JSON.stringify(fiados));
+        }
     }
 
     entradas.splice(i,1);
