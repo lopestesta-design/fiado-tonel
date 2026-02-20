@@ -4,69 +4,72 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Entradas</title>
-<link rel="stylesheet" href="style.css">
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #e6b800;
-    color: #5c3a00;
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+body {
+  font-family: Arial, sans-serif;
+  background: #e6b800;
+  color: #5c3a00;
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  .topo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    max-width: 600px;
-    margin-bottom: 20px;
-    position: relative;
-  }
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
+  position: relative;
+}
+.topo img {
+  width: 80px;
+  position: absolute;
+  left: 0;
+}
+.topo h2 { font-size: 24px; font-weight: bold; margin: 0 auto; text-align: center; flex: 1; }
 
-  .topo img {
-    width: 80px;
-    height: auto;
-    position: absolute;
-    left: 0;
-  }
+.voltar {
+  align-self: flex-start;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  font-weight: 900;
+  font-size: 16px;
+  border: 4px double #5c3a00;
+  border-radius: 10px;
+  background: transparent;
+  color: #5c3a00;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.voltar:hover { background: rgba(92, 58, 0, 0.1); }
 
-  .topo h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin: 0 auto;
-    text-align: center;
-    flex: 1;
-  }
+.conteudo { width: 100%; max-width: 600px; }
 
-  .voltar {
-    align-self: flex-start;
-    padding: 10px 15px;
-    margin-bottom: 20px;
-    font-weight: 900;
-    font-size: 16px;
-    border: 4px double #5c3a00;
-    border-radius: 10px;
-    background: transparent;
-    color: #5c3a00;
-    text-decoration: none;
-    cursor: pointer;
-    transition: 0.2s;
-  }
+input, select, button {
+  width: 100%;
+  padding: 18px;
+  margin-top: 12px;
+  font-size: 18px;
+  border-radius: 10px;
+  border: none;
+}
+input, select { background: #fff8dc; color:#5c3a00; }
+button { font-weight: bold; cursor: pointer; }
 
-  .voltar:hover {
-    background: rgba(92, 58, 0, 0.1);
-  }
-
-  .conteudo {
-    width: 100%;
-    max-width: 600px;
-  }
-
+.cliente {
+  background:#fff8dc;
+  padding:15px;
+  margin-top:15px;
+  border-radius:10px;
+  font-size:18px;
+  position: relative;
+}
 </style>
 </head>
 <body>
@@ -79,8 +82,56 @@
 <a href="index.html" class="voltar">⬅ Voltar à Home</a>
 
 <div class="conteudo">
-  <!-- Conteúdo de entradas -->
+  <h3>Registrar Entrada</h3>
+  <input type="text" id="descricao" placeholder="Descrição da entrada">
+  <input type="number" id="valor" placeholder="Valor">
+  <select id="tipoPagto">
+    <option value="Dinheiro">Dinheiro</option>
+    <option value="Pix">PIX</option>
+    <option value="Débito">Débito</option>
+    <option value="Crédito">Crédito</option>
+  </select>
+  <button onclick="registrarEntrada()">Adicionar Entrada</button>
+
+  <div id="listaEntradas"></div>
 </div>
+
+<script>
+let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+
+function salvarEntradas(){ 
+  localStorage.setItem('entradas', JSON.stringify(entradas)); 
+  atualizarLista(); 
+}
+
+function registrarEntrada() {
+  let desc = document.getElementById('descricao').value.trim();
+  let val = parseFloat(document.getElementById('valor').value);
+  let tipo = document.getElementById('tipoPagto').value;
+  if(!desc || isNaN(val) || val<=0) return alert('Preencha corretamente');
+  entradas.push({descricao: desc, valor: val, tipo: tipo, data: new Date().toLocaleString()});
+  salvarEntradas();
+  document.getElementById('descricao').value = '';
+  document.getElementById('valor').value = '';
+}
+
+function atualizarLista(){
+  let lista = document.getElementById('listaEntradas');
+  lista.innerHTML = '';
+  entradas.forEach((e,i)=>{
+    lista.innerHTML += `<div class="cliente">${e.data} - ${e.tipo} - ${e.descricao} - R$ ${e.valor.toFixed(2)} <button onclick="excluirEntrada(${i})">×</button></div>`;
+  });
+}
+
+function excluirEntrada(i){ 
+  if(confirm('Deseja excluir esta entrada?')) {
+    entradas.splice(i,1); 
+    salvarEntradas(); 
+  }
+}
+
+atualizarLista();
+</script>
 
 </body>
 </html>
