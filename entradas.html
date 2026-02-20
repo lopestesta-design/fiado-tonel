@@ -1,17 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Entradas</title>
+<title>Entradas - Tonel 333</title>
+
 <style>
 body { font-family:Arial; padding:20px; background:#fff8dc; color:#5c3a00; }
 .topo { display:flex; justify-content: space-between; align-items:center; margin-bottom:20px; }
 .logo { width:100px; }
 .voltar { font-size:22px; text-decoration:none; color:#5c3a00; }
-input, select { width:100%; padding:8px; margin-top:5px; margin-bottom:10px; }
-button { padding:10px; font-weight:bold; }
+
+input, select {
+    width:100%;
+    padding:8px;
+    margin-top:5px;
+    margin-bottom:10px;
+}
+
+button {
+    padding:10px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.lista {
+    margin-top:20px;
+}
+
+.card {
+    border:1px solid #5c3a00;
+    padding:10px;
+    margin-bottom:10px;
+    border-radius:6px;
+}
 </style>
+
 </head>
 <body>
 
@@ -23,6 +47,7 @@ button { padding:10px; font-weight:bold; }
 <h2>Registrar Venda</h2>
 
 <form id="formEntrada">
+
 <label>Descrição:</label>
 <input type="text" id="descricao" required>
 
@@ -38,18 +63,25 @@ button { padding:10px; font-weight:bold; }
 <option value="fiado">Fiado</option>
 </select>
 
-<label>Cliente (se for fiado):</label>
+<label>Cliente (se for Fiado):</label>
 <select id="cliente"></select>
 
 <label>Data:</label>
 <input type="date" id="data">
 
 <button type="submit">Salvar</button>
+
 </form>
 
+<h3>Histórico de Entradas</h3>
+<div class="lista" id="listaEntradas"></div>
+
 <script>
+
+// Define data de hoje
 document.getElementById("data").value = new Date().toISOString().slice(0,10);
 
+// Carregar clientes no select
 function carregarClientes(){
     let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
     let select = document.getElementById('cliente');
@@ -60,30 +92,74 @@ function carregarClientes(){
 }
 carregarClientes();
 
+// Listar histórico
+function listarEntradas(){
+    let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+    let div = document.getElementById('listaEntradas');
+    div.innerHTML = "";
+
+    entradas.forEach(e=>{
+        div.innerHTML += `
+        <div class="card">
+        ${e.data} - ${e.descricao} <br>
+        R$ ${e.valor.toFixed(2)} - ${e.pagamento}
+        ${e.pagamento==="fiado" ? " - Cliente: "+e.cliente : ""}
+        </div>
+        `;
+    });
+}
+listarEntradas();
+
+
+// SALVAR VENDA
 document.getElementById('formEntrada').addEventListener('submit', function(e){
     e.preventDefault();
 
-    let descricao = descricao.value;
+    let descricao = document.getElementById('descricao').value;
     let valor = parseFloat(document.getElementById('valor').value);
-    let pagamento = pagamento.value;
-    let cliente = cliente.value;
-    let data = data.value;
+    let pagamento = document.getElementById('pagamento').value;
+    let cliente = document.getElementById('cliente').value;
+    let data = document.getElementById('data').value;
 
+    // 1️⃣ Salvar entrada normal
     let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
     entradas.push({descricao, valor, pagamento, cliente, data});
     localStorage.setItem('entradas', JSON.stringify(entradas));
 
-    // SE FOR FIADO
+    // 2️⃣ SE FOR FIADO -> salvar no histórico detalhado
     if(pagamento === "fiado" && cliente){
+
         let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-        fiados.push({cliente, valor, saldo:valor, data});
+
+        let existente = fiados.find(f => f.cliente === cliente);
+
+        if(existente){
+            existente.consumos.push({
+                data: data,
+                valor: valor
+            });
+        } else {
+            fiados.push({
+                cliente: cliente,
+                consumos: [{
+                    data: data,
+                    valor: valor
+                }],
+                pagamentos: []
+            });
+        }
+
         localStorage.setItem('fiados', JSON.stringify(fiados));
     }
 
     alert("Venda registrada!");
+
     this.reset();
     document.getElementById("data").value = new Date().toISOString().slice(0,10);
+
+    listarEntradas();
 });
+
 </script>
 
 </body>
