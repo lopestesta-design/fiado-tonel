@@ -11,8 +11,9 @@ body { font-family: Arial,sans-serif; background:#e6b800; color:#5c3a00; margin:
 .topo h2 { font-size:24px; font-weight:bold; margin:0 auto; text-align:center; flex:1; }
 .voltar { align-self:flex-start; padding:10px 15px; margin-bottom:20px; font-weight:900; font-size:16px; border:4px double #5c3a00; border-radius:10px; background:transparent; color:#5c3a00; text-decoration:none; cursor:pointer; }
 .conteudo { width:100%; max-width:600px; }
-input, button { width:100%; padding:12px; margin-top:10px; font-size:16px; border-radius:8px; border:none; }
+input, select, button { width:100%; padding:12px; margin-top:10px; font-size:16px; border-radius:8px; border:none; }
 input { background:#fff8dc; color:#5c3a00; }
+select { background:#fff8dc; color:#5c3a00; }
 button { font-weight:bold; cursor:pointer; }
 .btn-add { background:#16a34a; color:white; }
 .entrada { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; }
@@ -32,7 +33,14 @@ button { font-weight:bold; cursor:pointer; }
 <h3>Adicionar Entrada</h3>
 <input type="text" id="descricaoEntrada" placeholder="Descrição">
 <input type="number" id="valorEntrada" placeholder="Valor">
-<input type="date" id="dataEntrada" value="">
+<input type="date" id="dataEntrada">
+<select id="formaPagamentoEntrada">
+  <option value="dinheiro">Dinheiro</option>
+  <option value="pix">Pix</option>
+  <option value="debito">Débito</option>
+  <option value="credito">Crédito</option>
+</select>
+<input type="number" id="taxaCartaoEntrada" placeholder="Taxa % (se débito/crédito)" step="0.01">
 <button class="btn-add" onclick="adicionarEntrada()">Adicionar</button>
 
 <div id="listaEntradas"></div>
@@ -47,7 +55,7 @@ function atualizarEntradas() {
   entradas.forEach((e,i)=>{
     lista.innerHTML += `
       <div class="entrada">
-        ${e.data} - ${e.descricao} - R$ ${e.valor.toFixed(2)}
+        ${e.data} - ${e.descricao} - R$ ${e.valor.toFixed(2)} - ${e.formaPagamento} ${e.taxa>0?`- Taxa: ${e.taxa}%`:''}
         <span class="icon" onclick="excluirEntrada(${i})">x</span>
       </div>
     `;
@@ -59,8 +67,15 @@ function adicionarEntrada() {
   let desc = document.getElementById("descricaoEntrada").value.trim();
   let val = parseFloat(document.getElementById("valorEntrada").value);
   let data = document.getElementById("dataEntrada").value || new Date().toISOString().split("T")[0];
+  let forma = document.getElementById("formaPagamentoEntrada").value;
+  let taxa = parseFloat(document.getElementById("taxaCartaoEntrada").value) || 0;
+
   if(!desc || !val) return alert("Informe descrição e valor");
-  entradas.push({descricao:desc, valor:val, data:data});
+  
+  // aplica taxa se pagamento for débito ou crédito
+  if(forma==='debito' || forma==='credito') val = val * (1 - taxa/100);
+  
+  entradas.push({descricao:desc, valor:val, data:data, formaPagamento:forma, taxa: taxa});
   atualizarEntradas();
 }
 
@@ -70,6 +85,8 @@ function excluirEntrada(i) {
     atualizarEntradas();
   }
 }
+
+document.getElementById("dataEntrada").value = new Date().toISOString().split("T")[0];
 
 atualizarEntradas();
 </script>
