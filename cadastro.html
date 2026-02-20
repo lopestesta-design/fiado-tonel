@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadastro - Tonel 333</title>
+<title>Cadastro de Clientes - Tonel 333</title>
 <script src="app.js"></script>
 <style>
 body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5c3a00; }
@@ -16,24 +16,15 @@ button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 </style>
 </head>
 <body>
-
 <div class="topo">
   <a href="index.html" class="voltar">←</a>
   <img src="logo.png" alt="Tonel 333">
 </div>
 
-<h2>Cadastro de Cliente</h2>
-
+<h2>Cadastro de Clientes</h2>
 <form id="formCadastro">
-  <label>Nome:</label>
+  <label>Nome do Cliente:</label>
   <input type="text" id="nomeCliente" required>
-
-  <label>Telefone:</label>
-  <input type="text" id="telefoneCliente">
-
-  <label>Observações:</label>
-  <input type="text" id="obsCliente">
-
   <button type="submit">Cadastrar</button>
 </form>
 
@@ -41,15 +32,12 @@ button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 document.getElementById('formCadastro').addEventListener('submit', function(e){
   e.preventDefault();
   let nome = document.getElementById('nomeCliente').value;
-  let telefone = document.getElementById('telefoneCliente').value;
-  let obs = document.getElementById('obsCliente').value;
   let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-  clientes.push({ nome, telefone, obs });
+  clientes.push({nome});
   localStorage.setItem('clientes', JSON.stringify(clientes));
   alert('Cliente cadastrado!');
   this.reset();
 });
 </script>
-
 </body>
 </html>
