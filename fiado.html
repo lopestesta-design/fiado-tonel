@@ -5,234 +5,100 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Fiado</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #e6b800;
-    color: #5c3a00;
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .topo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    max-width: 600px;
-    margin-bottom: 20px;
-    position: relative;
-  }
-
-  .topo img {
-    width: 80px;
-    height: auto;
-    position: absolute;
-    left: 0;
-  }
-
-  .topo h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin: 0 auto;
-    text-align: center;
-    flex: 1;
-  }
-
-  .voltar {
-    align-self: flex-start;
-    padding: 10px 15px;
-    margin-bottom: 20px;
-    font-weight: 900;
-    font-size: 16px;
-    border: 4px double #5c3a00;
-    border-radius: 10px;
-    background: transparent;
-    color: #5c3a00;
-    text-decoration: none;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .voltar:hover {
-    background: rgba(92, 58, 0, 0.1);
-  }
-
-  .conteudo {
-    width: 100%;
-    max-width: 600px;
-  }
-
-  input, select, button {
-    width: 100%;
-    padding: 18px;
-    margin-top: 12px;
-    font-size: 18px;
-    border-radius: 10px;
-    border: none;
-  }
-
-  input, select {
-    background: #fff8dc; /* um tom claro para inputs */
-    color: #5c3a00;
-  }
-
-  button {
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  .btn-add { background:#28a745; color:white; }
-  .btn-consumo { background:#dc2626; color:white; }
-  .btn-pagamento { background:#16a34a; color:white; }
-  .btn-whats { background:#25D366; color:white; }
-
-  .cliente {
-    background:#fff8dc;
-    padding:15px;
-    margin-top:15px;
-    border-radius:10px;
-    font-size:18px;
-    position: relative;
-  }
-
-  .cliente button.editar, .cliente button.excluir {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    font-weight: bold;
-    border: 2px double #5c3a00;
-    border-radius: 5px;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  .cliente button.editar { right: 50px; }
+body { font-family: Arial,sans-serif; background:#e6b800; color:#5c3a00; margin:0; padding:20px; }
+.topo { display:flex; align-items:center; justify-content:center; width:100%; max-width:600px; margin-bottom:20px; position:relative; }
+.topo img { width:80px; position:absolute; left:0; }
+.topo h2 { font-size:24px; font-weight:bold; margin:0 auto; text-align:center; flex:1; }
+.voltar { align-self:flex-start; padding:10px 15px; margin-bottom:20px; font-weight:900; font-size:16px; border:4px double #5c3a00; border-radius:10px; background:transparent; color:#5c3a00; text-decoration:none; cursor:pointer; }
+.conteudo { width:100%; max-width:600px; }
+input, select, button { width:100%; padding:12px; margin-top:10px; font-size:16px; border-radius:8px; border:none; }
+input, select { background:#fff8dc; color:#5c3a00; }
+button { font-weight:bold; cursor:pointer; }
+.btn-add { background:#16a34a; color:white; }
+.cliente { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; }
+.icon { cursor:pointer; margin-left:5px; color:#dc2626; font-weight:bold; }
 </style>
 </head>
 <body>
 
 <header class="topo">
-  <img src="logo.png" alt="Tonel 333">
-  <h2>Fiado</h2>
+<img src="logo.png" alt="Tonel 333">
+<h2>Fiado</h2>
 </header>
 
 <a href="index.html" class="voltar">⬅ Voltar à Home</a>
 
 <div class="conteudo">
-  <h3>Cadastrar Cliente</h3>
-  <input type="text" id="nome" placeholder="Nome do Cliente">
-  <input type="tel" id="telefone" placeholder="Telefone 5511999999999">
-  <button type="button" class="btn-add" onclick="cadastrarCliente()">Cadastrar</button>
+<h3>Cadastrar Cliente</h3>
+<input type="text" id="nome" placeholder="Nome do Cliente">
+<input type="tel" id="telefone" placeholder="Telefone 5511999999999">
+<input type="date" id="dataCliente" value="">
+<button class="btn-add" onclick="cadastrarCliente()">Cadastrar</button>
 
-  <h3>Movimentação</h3>
-  <select id="clienteSelect"></select>
-  <input type="number" id="valor" placeholder="Valor">
-  <button type="button" class="btn-consumo" onclick="registrarConsumo()">Adicionar Consumo</button>
-  <button type="button" class="btn-pagamento" onclick="registrarPagamento()">Registrar Pagamento</button>
+<h3>Registrar Consumo</h3>
+<select id="clienteSelect"></select>
+<input type="number" id="valor" placeholder="Valor do Consumo">
+<input type="date" id="dataConsumo" value="">
+<button class="btn-add" onclick="registrarConsumo()">Adicionar Consumo</button>
 
-  <div id="lista"></div>
+<div id="lista"></div>
 </div>
 
 <script>
+// dados
 let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
 
-function salvar() {
-  localStorage.setItem('clientes', JSON.stringify(clientes));
-  atualizarLista();
-  atualizarSelect();
-}
-
-function cadastrarCliente() {
-  let nome = document.getElementById('nome').value.trim();
-  let telefone = document.getElementById('telefone').value.trim();
-  if(!nome) return alert('Digite o nome do cliente');
-  clientes.push({nome, telefone, saldo:0, historico:[]});
-  salvar();
-  document.getElementById('nome').value = '';
-  document.getElementById('telefone').value = '';
-}
-
-function atualizarSelect() {
-  let sel = document.getElementById('clienteSelect');
-  sel.innerHTML = '';
-  clientes.forEach((c,i)=>{
-    let opt = document.createElement('option');
-    opt.value=i; opt.textContent=c.nome; sel.appendChild(opt);
-  });
-}
-
+// atualizar select e lista
 function atualizarLista() {
-  let lista = document.getElementById('lista');
-  lista.innerHTML = '';
+  let sel = document.getElementById("clienteSelect");
+  sel.innerHTML = "<option value=''>Selecione</option>";
+  let lista = document.getElementById("lista");
+  lista.innerHTML = "";
   clientes.forEach((c,i)=>{
-    let historicoHTML = c.historico.map(h => h.data + " - " + h.tipo + " - R$ " + h.valor.toFixed(2)).join("<br>");
+    sel.innerHTML += `<option value='${i}'>${c.nome}</option>`;
+    let historicoHTML = c.historico.map(h => `${h.data} - ${h.tipo} - R$ ${h.valor.toFixed(2)}`).join("<br>");
     lista.innerHTML += `
       <div class="cliente">
-        <b>${c.nome}</b><br>
+        <b>${c.nome}</b> <span class="icon" onclick="excluirCliente(${i})">x</span><br>
         Telefone: ${c.telefone}<br>
-        <b>Saldo: R$ ${c.saldo.toFixed(2)}</b><br><br>
-        <b>Histórico:</b><br>${historicoHTML || "Sem movimentações"}<br><br>
-        <button class="btn-whats" onclick="enviarWhatsApp(${i})">WhatsApp</button>
-        <button class="editar" onclick="editarCliente(${i})">✎</button>
-        <button class="excluir" onclick="excluirCliente(${i})">×</button>
+        Saldo: R$ ${c.saldo.toFixed(2)}<br>
+        Histórico:<br>${historicoHTML || "Sem movimentações"}
       </div>
     `;
   });
+  localStorage.setItem('clientes', JSON.stringify(clientes));
 }
 
+// cadastrar cliente
+function cadastrarCliente() {
+  let nome = document.getElementById("nome").value.trim();
+  let telefone = document.getElementById("telefone").value.trim();
+  let dataCliente = document.getElementById("dataCliente").value || new Date().toISOString().split("T")[0];
+  if(!nome) return alert("Informe o nome");
+  clientes.push({nome, telefone, saldo:0, historico:[{tipo:"Cadastro", valor:0, data:dataCliente}]});
+  atualizarLista();
+}
+
+// registrar consumo
 function registrarConsumo() {
-  let sel = document.getElementById('clienteSelect');
-  let idx = sel.value;
-  let valor = parseFloat(document.getElementById('valor').value);
-  if(isNaN(valor) || valor<=0) return alert('Digite um valor válido');
-  clientes[idx].saldo += valor;
-  clientes[idx].historico.push({tipo:'Consumo', valor, data:new Date().toLocaleString()});
-  salvar();
-  document.getElementById('valor').value = '';
+  let i = document.getElementById("clienteSelect").value;
+  let valor = parseFloat(document.getElementById("valor").value);
+  let dataConsumo = document.getElementById("dataConsumo").value || new Date().toISOString().split("T")[0];
+  if(i==="" || !valor) return alert("Selecione cliente e informe valor");
+  clientes[i].saldo += valor;
+  clientes[i].historico.push({tipo:"Consumo", valor:valor, data:dataConsumo});
+  atualizarLista();
 }
 
-function registrarPagamento() {
-  let sel = document.getElementById('clienteSelect');
-  let idx = sel.value;
-  let valor = parseFloat(document.getElementById('valor').value);
-  if(isNaN(valor) || valor<=0) return alert('Digite um valor válido');
-  clientes[idx].saldo -= valor;
-  clientes[idx].historico.push({tipo:'Pagamento', valor, data:new Date().toLocaleString()});
-  salvar();
-  document.getElementById('valor').value = '';
-}
-
-function enviarWhatsApp(i) {
-  let c = clientes[i];
-  let msg = `Olá ${c.nome}, seu saldo no Tonel 333 é R$ ${c.saldo.toFixed(2)}. Chave PIX: 12345678900`;
-  let url = `https://api.whatsapp.com/send?phone=${c.telefone}&text=${encodeURIComponent(msg)}`;
-  window.open(url,'_blank');
-}
-
-function excluirCliente(i) {
-  if(confirm('Deseja realmente excluir este cliente?')) {
+// excluir cliente
+function excluirCliente(i){
+  if(confirm("Confirma exclusão do cliente?")){
     clientes.splice(i,1);
-    salvar();
+    atualizarLista();
   }
 }
 
-function editarCliente(i) {
-  let c = clientes[i];
-  let novoNome = prompt('Novo nome:', c.nome);
-  if(novoNome) c.nome = novoNome;
-  let novoTel = prompt('Novo telefone:', c.telefone);
-  if(novoTel) c.telefone = novoTel;
-  salvar();
-}
-
-salvar();
+atualizarLista();
 </script>
 
 </body>
