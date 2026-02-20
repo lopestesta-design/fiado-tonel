@@ -3,16 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonel 333 - Controle de Fiado</title>
-
+<title>Tonel 333 - Controle Completo</title>
 <style>
-body { 
-  font-family: Arial; 
-  background:#111; 
-  color:white; 
-  padding:10px; 
-  margin:0;
-}
+body { font-family: Arial; background:#111; color:white; padding:10px; margin:0; }
 h1,h3 { text-align:center; margin-bottom:8px; }
 input,select,button { width:100%; padding:16px; margin-top:8px; font-size:18px; border-radius:10px; border:none; }
 input,select { background:#222; color:white; }
@@ -21,136 +14,216 @@ button { font-weight:bold; cursor:pointer; }
 .btn-consumo { background:#dc2626; color:white; }
 .btn-pagamento { background:#16a34a; color:white; }
 .btn-whats { background:#25D366; color:white; }
+.btn-entrada { background:#28a745; color:white; }
+.btn-saida { background:#dc2626; color:white; }
 .btn-backup { background:#ff9800; color:white; }
-.btn-zerar { background:#f44336; color:white; }
-.cliente { 
-  background:#1e1e1e; 
-  padding:12px; 
-  margin-top:10px; 
-  border-radius:10px; 
-  font-size:16px; 
-  position:relative;
-  word-wrap: break-word;
-}
+.cliente, .entry, .exit { background:#1e1e1e; padding:12px; margin-top:10px; border-radius:10px; font-size:16px; word-wrap: break-word; }
 #totalSaldo { text-align:center; font-size:18px; margin-bottom:10px; font-weight:bold; color:#ffcc00; }
-button.excluir, button.editar {
-  position:absolute; top:5px; width:32px; height:32px; border:none; border-radius:50%; font-weight:bold; cursor:pointer;
-}
-button.excluir { right:5px; background:red; color:white; }
-button.editar { right:45px; background:#f59e0b; color:white; }
 </style>
 </head>
-
 <body>
 
-<h1>Tonel 333 - Controle de Fiado</h1>
-<div id="totalSaldo">Total Geral: R$ 0,00</div>
+<h1>Tonel 333 - Controle Completo</h1>
+<div id="totalSaldo">Saldo Atual: R$ 0,00</div>
 
+<!-- Cadastrar Cliente -->
 <h3>Cadastrar Cliente</h3>
 <input type="text" id="nome" placeholder="Nome do Cliente">
 <input type="tel" id="telefone" placeholder="Telefone 5511999999999">
 <button type="button" class="btn-add" onclick="cadastrarCliente()">Cadastrar</button>
 
-<h3>Movimentação</h3>
+<!-- Movimentação de Fiado -->
+<h3>Movimentação - Fiado</h3>
 <select id="clienteSelect"></select>
 <input type="number" id="valor" placeholder="Valor">
 <button type="button" class="btn-consumo" onclick="adicionarConsumo()">Adicionar Consumo</button>
 <button type="button" class="btn-pagamento" onclick="registrarPagamento()">Registrar Pagamento</button>
 
-<h3>Buscar Cliente</h3>
-<input type="text" id="buscaCliente" placeholder="Digite o nome do cliente..." onkeyup="filtrarClientes()">
+<!-- Entradas -->
+<h3>Registrar Entrada</h3>
+<input type="text" id="descricaoEntrada" placeholder="Descrição">
+<input type="number" id="valorEntrada" placeholder="Valor R$">
+<select id="formaPagamento">
+  <option value="dinheiro">Dinheiro</option>
+  <option value="pix">PIX</option>
+  <option value="debito">Débito</option>
+  <option value="credito">Crédito</option>
+</select>
+<input type="number" id="taxaCartao" placeholder="Taxa % (somente para débito/crédito)">
+<button class="btn-entrada" onclick="registrarEntrada()">Adicionar Entrada</button>
 
-<h3>Backup</h3>
-<button class="btn-backup" onclick="exportarBackupLocal()">Salvar Backup</button>
-<button class="btn-backup" onclick="restaurarBackup()">Restaurar Backup</button>
-<button class="btn-zerar" onclick="zerarClientes()">Zerar todos</button>
+<!-- Saídas -->
+<h3>Registrar Saída</h3>
+<input type="text" id="descricaoSaida" placeholder="Descrição">
+<input type="number" id="valorSaida" placeholder="Valor R$">
+<button class="btn-saida" onclick="registrarSaida()">Adicionar Saída</button>
 
+<!-- Histórico -->
+<h3>Histórico</h3>
+<div id="listaHistorico"></div>
+
+<!-- Clientes -->
+<h3>Clientes</h3>
 <div id="lista"></div>
 
-<script>
-let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
-const LIMITE_SALDO = 200;
+<!-- Backup -->
+<button class="btn-backup" onclick="exportarBackup()">Salvar Backup</button>
+<button class="btn-backup" onclick="restaurarBackup()">Restaurar Backup</button>
 
-function salvar(){
+<script>
+// === FIADO ===
+let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+
+function salvarFiado() {
   localStorage.setItem("clientes", JSON.stringify(clientes));
-  localStorage.setItem("backup_clientes", JSON.stringify(clientes));
-  atualizarLista(); atualizarSelect(); atualizarTotal();
+  atualizarListaClientes();
+  atualizarSelectClientes();
 }
 
-function carregar(){ clientes = JSON.parse(localStorage.getItem("clientes")) || []; atualizarLista(); atualizarSelect(); atualizarTotal(); }
+function carregarFiado() {
+  clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+  atualizarListaClientes();
+  atualizarSelectClientes();
+}
 
-function cadastrarCliente(){
+function cadastrarCliente() {
   let nome = document.getElementById("nome").value.trim();
   let telefone = document.getElementById("telefone").value.trim();
-  if(!nome||!telefone){alert("Preencha todos os campos");return;}
-  clientes.push({nome,telefone,saldo:0,historico:[]});
-  document.getElementById("nome").value=""; document.getElementById("telefone").value="";
-  salvar();
+  if(!nome || !telefone){ alert("Preencha todos os campos"); return; }
+  clientes.push({ nome, telefone, saldo:0, historico:[] });
+  document.getElementById("nome").value = "";
+  document.getElementById("telefone").value = "";
+  salvarFiado();
 }
 
-function atualizarSelect(){
-  let select=document.getElementById("clienteSelect"); select.innerHTML="";
-  clientes.forEach(c=>{let option=document.createElement("option"); option.value=c.nome; option.textContent=c.nome; select.appendChild(option);});
-}
-
-function adicionarConsumo(){
-  let nome=document.getElementById("clienteSelect").value;
-  let valor=parseFloat(document.getElementById("valor").value);
-  if(!valor){alert("Digite um valor");return;}
-  let cliente=clientes.find(c=>c.nome===nome);
-  if(cliente){cliente.saldo+=valor; cliente.historico.push({data:new Date().toLocaleDateString(),tipo:"Consumo",valor});}
-  document.getElementById("valor").value=""; salvar();
-}
-
-function registrarPagamento(){
-  let nome=document.getElementById("clienteSelect").value;
-  let valor=parseFloat(document.getElementById("valor").value);
-  if(!valor){alert("Digite um valor");return;}
-  let cliente=clientes.find(c=>c.nome===nome);
-  if(cliente){cliente.saldo-=valor;if(cliente.saldo<0)cliente.saldo=0;cliente.historico.push({data:new Date().toLocaleDateString(),tipo:"Pagamento",valor});}
-  document.getElementById("valor").value=""; salvar();
-}
-
-function filtrarClientes(){
-  let filtro=document.getElementById("buscaCliente").value.toLowerCase();
-  document.querySelectorAll("#lista .cliente").forEach(div=>{
-    let nome=div.querySelector("b").textContent.toLowerCase();
-    div.style.display=nome.includes(filtro)?"block":"none";
+function atualizarSelectClientes() {
+  let select = document.getElementById("clienteSelect");
+  select.innerHTML = "";
+  clientes.forEach(c => {
+    let option = document.createElement("option");
+    option.value = c.nome;
+    option.textContent = c.nome;
+    select.appendChild(option);
   });
 }
 
-function enviarWhatsApp(index){
-  let cliente=clientes[index];
-  let telefone=cliente.telefone.replace(/\D/g,"");
-  let mensagem="Extrato - Tonel 333\n\n";
-  cliente.historico.forEach(h=>mensagem+=h.data+" - "+h.tipo+" - R$ "+h.valor.toFixed(2)+"\n");
-  mensagem+="\nSaldo atual: R$ "+cliente.saldo.toFixed(2);
-  mensagem+="\n\nChave PIX: 14341419000111";
-  let url="https://wa.me/"+telefone+"?text="+encodeURIComponent(mensagem);
+function adicionarConsumo() {
+  let nome = document.getElementById("clienteSelect").value;
+  let valor = parseFloat(document.getElementById("valor").value);
+  if(!valor){ alert("Digite um valor"); return; }
+  let cliente = clientes.find(c => c.nome === nome);
+  if(cliente){
+    cliente.saldo += valor;
+    cliente.historico.push({ data:new Date().toLocaleDateString(), tipo:"Consumo", valor });
+  }
+  document.getElementById("valor").value = "";
+  salvarFiado();
+}
+
+function registrarPagamento() {
+  let nome = document.getElementById("clienteSelect").value;
+  let valor = parseFloat(document.getElementById("valor").value);
+  if(!valor){ alert("Digite um valor"); return; }
+  let cliente = clientes.find(c => c.nome === nome);
+  if(cliente){
+    cliente.saldo -= valor;
+    if(cliente.saldo<0) cliente.saldo=0;
+    cliente.historico.push({ data:new Date().toLocaleDateString(), tipo:"Pagamento", valor });
+  }
+  document.getElementById("valor").value = "";
+  salvarFiado();
+}
+
+function enviarWhatsApp(index) {
+  let cliente = clientes[index];
+  let telefone = cliente.telefone.replace(/\D/g,"");
+  let mensagem = "Extrato - Tonel 333\n\n";
+  cliente.historico.forEach(h=>mensagem+=`${h.data} - ${h.tipo} - R$ ${h.valor.toFixed(2)}\n`);
+  mensagem += `\nSaldo atual: R$ ${cliente.saldo.toFixed(2)}\n\nChave PIX: 14341419000111`;
+  let url = "https://wa.me/"+telefone+"?text="+encodeURIComponent(mensagem);
   window.open(url,"_blank");
 }
 
-function excluirCliente(index){if(confirm("Deseja realmente excluir este cliente?")){clientes.splice(index,1); salvar();}}
-function editarCliente(index){let n=prompt("Editar nome:",clientes[index].nome); if(n===null)return; let t=prompt("Editar telefone:",clientes[index].telefone); if(t===null)return; clientes[index].nome=n.trim(); clientes[index].telefone=t.trim(); salvar();}
-
-function atualizarLista(){
-  let lista=document.getElementById("lista"); lista.innerHTML="";
+function atualizarListaClientes(){
+  let lista = document.getElementById("lista");
+  lista.innerHTML="";
   clientes.forEach((c,i)=>{
-    let hHTML=c.historico.map(h=>h.data+" - "+h.tipo+" - R$ "+h.valor.toFixed(2)).join("<br>");
-    lista.innerHTML+=`<div class="cliente" style="color:${c.saldo>LIMITE_SALDO?'#ff4444':'white'};">
-      <button class="excluir" onclick="excluirCliente(${i})">X</button>
-      <button class="editar" onclick="editarCliente(${i})">✏</button>
-      <b>${c.nome}</b><br>Telefone: ${c.telefone}<br><b>Saldo: R$ ${c.saldo.toFixed(2)}</b><br><br><b>Histórico:</b><br>${hHTML || "Sem movimentações"}<br><br>
-      <button class="btn-whats" onclick="enviarWhatsApp(${i})">Enviar WhatsApp</button></div>`;
+    let historicoHTML = c.historico.map(h=>`${h.data} - ${h.tipo} - R$ ${h.valor.toFixed(2)}`).join("<br>");
+    lista.innerHTML += `
+      <div class="cliente">
+        <b>${c.nome}</b><br>
+        Telefone: ${c.telefone}<br>
+        <b>Saldo: R$ ${c.saldo.toFixed(2)}</b><br><br>
+        <b>Histórico:</b><br>${historicoHTML || "Sem movimentações"}<br><br>
+        <button class="btn-whats" onclick="enviarWhatsApp(${i})">Enviar WhatsApp</button>
+      </div>`;
   });
 }
+carregarFiado();
 
-function atualizarTotal(){let total=clientes.reduce((s,c)=>s+c.saldo,0);document.getElementById("totalSaldo").textContent="Total Geral: R$ "+total.toFixed(2);}
-function restaurarBackup(){let b=localStorage.getItem("backup_clientes"); if(!b){alert("Nenhum backup encontrado!");return;} clientes=JSON.parse(b); salvar(); alert("Backup restaurado com sucesso!");}
-function exportarBackupLocal(){const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(clientes)); const dl=document.createElement('a'); dl.setAttribute("href",dataStr); dl.setAttribute("download","backup_clientes.json"); dl.click();}
-function zerarClientes(){if(confirm("Deseja realmente apagar todos os clientes e saldos?")){clientes=[]; salvar();}}
+// === VENDAS e DESPESAS ===
+let entradas = JSON.parse(localStorage.getItem("entradas")) || [];
+let saidas = JSON.parse(localStorage.getItem("saidas")) || [];
 
-carregar();
+function salvarVendas(){
+  localStorage.setItem("entradas", JSON.stringify(entradas));
+  localStorage.setItem("saidas", JSON.stringify(saidas));
+  atualizarHistorico();
+}
+
+function registrarEntrada(){
+  let desc=document.getElementById("descricaoEntrada").value.trim();
+  let val=parseFloat(document.getElementById("valorEntrada").value);
+  let forma=document.getElementById("formaPagamento").value;
+  let taxa=parseFloat(document.getElementById("taxaCartao").value)||0;
+  if(!desc || !val){ alert("Preencha todos os campos"); return; }
+  let valLiquido=val; if(forma==="debito"||forma==="credito"){ valLiquido = val*(1-taxa/100);}
+  entradas.push({descricao:desc,valor:val,forma,taxa,liquido:valLiquido,data:new Date().toLocaleDateString()});
+  document.getElementById("descricaoEntrada").value="";
+  document.getElementById("valorEntrada").value="";
+  document.getElementById("taxaCartao").value="";
+  salvarVendas();
+}
+
+function registrarSaida(){
+  let desc=document.getElementById("descricaoSaida").value.trim();
+  let val=parseFloat(document.getElementById("valorSaida").value);
+  if(!desc||!val){ alert("Preencha todos os campos"); return; }
+  saidas.push({descricao:desc,valor:val,data:new Date().toLocaleDateString()});
+  document.getElementById("descricaoSaida").value="";
+  document.getElementById("valorSaida").value="";
+  salvarVendas();
+}
+
+function atualizarHistorico(){
+  let lista=document.getElementById("listaHistorico");
+  lista.innerHTML="";
+  let total=0;
+  entradas.forEach(e=>{lista.innerHTML+=`<div class="entry"><b>Entrada:</b> ${e.descricao} - R$ ${e.valor.toFixed(2)} (${e.forma}${e.taxa?` - Taxa ${e.taxa}%`:""}) - Líquido: R$ ${e.liquido.toFixed(2)} - ${e.data}</div>`; total+=e.liquido;});
+  saidas.forEach(s=>{lista.innerHTML+=`<div class="exit"><b>Saída:</b> ${s.descricao} - R$ ${s.valor.toFixed(2)} - ${s.data}</div>`; total-=s.valor;});
+  document.getElementById("totalSaldo").textContent="Saldo Atual: R$ "+total.toFixed(2);
+}
+
+function exportarBackup(){
+  const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({clientes,entradas,saidas}));
+  const dl=document.createElement('a'); dl.setAttribute("href",dataStr); dl.setAttribute("download","backup_bar.json"); dl.click();
+}
+
+function restaurarBackup(){
+  let b=prompt("Cole o conteúdo JSON do backup aqui:");
+  if(!b) return;
+  try{
+    let data=JSON.parse(b);
+    clientes=data.clientes||[];
+    entradas=data.entradas||[];
+    saidas=data.saidas||[];
+    salvarFiado();
+    salvarVendas();
+    alert("Backup restaurado com sucesso!");
+  }catch(e){alert("Backup inválido!");}
+}
+
+atualizarHistorico();
 </script>
 </body>
 </html>
