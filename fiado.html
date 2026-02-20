@@ -3,102 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonel 333 - Fiado</title>
+<title>Fiado - Tonel 333</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js"></script>
 <style>
-body { font-family: Arial,sans-serif; background:#e6b800; color:#5c3a00; margin:0; padding:20px; }
-.topo { display:flex; align-items:center; justify-content:center; width:100%; max-width:600px; margin-bottom:20px; position:relative; }
-.topo img { width:80px; position:absolute; left:0; }
-.topo h2 { font-size:24px; font-weight:bold; margin:0 auto; text-align:center; flex:1; }
-.voltar { align-self:flex-start; padding:10px 15px; margin-bottom:20px; font-weight:900; font-size:16px; border:4px double #5c3a00; border-radius:10px; background:transparent; color:#5c3a00; text-decoration:none; cursor:pointer; }
-.conteudo { width:100%; max-width:600px; }
-input, select, button { width:100%; padding:12px; margin-top:10px; font-size:16px; border-radius:8px; border:none; }
-input, select { background:#fff8dc; color:#5c3a00; }
-button { font-weight:bold; cursor:pointer; }
-.btn-add { background:#16a34a; color:white; }
-.cliente { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; }
-.icon { cursor:pointer; margin-left:5px; color:#dc2626; font-weight:bold; }
+body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5c3a00; }
+.topo { display:flex; justify-content: flex-end; align-items:center; margin-bottom:20px; }
+.topo img { width:120px; }
+.voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
+label { display:block; margin-top:10px; }
+input, select { padding:5px; margin-top:5px; width:100%; max-width:300px; }
+button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 </style>
 </head>
 <body>
 
-<header class="topo">
-<img src="logo.png" alt="Tonel 333">
-<h2>Fiado</h2>
-</header>
-
-<a href="index.html" class="voltar">⬅ Voltar à Home</a>
-
-<div class="conteudo">
-<h3>Cadastrar Cliente</h3>
-<input type="text" id="nome" placeholder="Nome do Cliente">
-<input type="tel" id="telefone" placeholder="Telefone 5511999999999">
-<input type="date" id="dataCliente" value="">
-<button class="btn-add" onclick="cadastrarCliente()">Cadastrar</button>
-
-<h3>Registrar Consumo</h3>
-<select id="clienteSelect"></select>
-<input type="number" id="valor" placeholder="Valor do Consumo">
-<input type="date" id="dataConsumo" value="">
-<button class="btn-add" onclick="registrarConsumo()">Adicionar Consumo</button>
-
-<div id="lista"></div>
+<div class="topo">
+  <a href="index.html" class="voltar">←</a>
+  <img src="logo.png" alt="Tonel 333">
 </div>
 
+<h2>Registrar Fiado</h2>
+<form id="formFiado">
+  <label>Cliente:</label>
+  <input type="text" id="clienteFiado" required>
+
+  <label>Valor:</label>
+  <input type="number" id="valorFiado" step="0.01" required>
+
+  <label>Pagamento:</label>
+  <select id="pagamentoFiado">
+    <option value="dinheiro">Dinheiro</option>
+    <option value="pix">Pix</option>
+    <option value="debito">Débito</option>
+    <option value="credito">Crédito</option>
+  </select>
+
+  <label>Data:</label>
+  <input type="date" id="dataFiado">
+
+  <button type="submit">Registrar</button>
+</form>
+
 <script>
-// dados
-let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+document.getElementById('dataFiado').value = new Date().toISOString().slice(0,10);
 
-// atualizar select e lista
-function atualizarLista() {
-  let sel = document.getElementById("clienteSelect");
-  sel.innerHTML = "<option value=''>Selecione</option>";
-  let lista = document.getElementById("lista");
-  lista.innerHTML = "";
-  clientes.forEach((c,i)=>{
-    sel.innerHTML += `<option value='${i}'>${c.nome}</option>`;
-    let historicoHTML = c.historico.map(h => `${h.data} - ${h.tipo} - R$ ${h.valor.toFixed(2)}`).join("<br>");
-    lista.innerHTML += `
-      <div class="cliente">
-        <b>${c.nome}</b> <span class="icon" onclick="excluirCliente(${i})">x</span><br>
-        Telefone: ${c.telefone}<br>
-        Saldo: R$ ${c.saldo.toFixed(2)}<br>
-        Histórico:<br>${historicoHTML || "Sem movimentações"}
-      </div>
-    `;
-  });
-  localStorage.setItem('clientes', JSON.stringify(clientes));
-}
-
-// cadastrar cliente
-function cadastrarCliente() {
-  let nome = document.getElementById("nome").value.trim();
-  let telefone = document.getElementById("telefone").value.trim();
-  let dataCliente = document.getElementById("dataCliente").value || new Date().toISOString().split("T")[0];
-  if(!nome) return alert("Informe o nome");
-  clientes.push({nome, telefone, saldo:0, historico:[{tipo:"Cadastro", valor:0, data:dataCliente}]});
-  atualizarLista();
-}
-
-// registrar consumo
-function registrarConsumo() {
-  let i = document.getElementById("clienteSelect").value;
-  let valor = parseFloat(document.getElementById("valor").value);
-  let dataConsumo = document.getElementById("dataConsumo").value || new Date().toISOString().split("T")[0];
-  if(i==="" || !valor) return alert("Selecione cliente e informe valor");
-  clientes[i].saldo += valor;
-  clientes[i].historico.push({tipo:"Consumo", valor:valor, data:dataConsumo});
-  atualizarLista();
-}
-
-// excluir cliente
-function excluirCliente(i){
-  if(confirm("Confirma exclusão do cliente?")){
-    clientes.splice(i,1);
-    atualizarLista();
-  }
-}
-
-atualizarLista();
+document.getElementById('formFiado').addEventListener('submit', function(e){
+  e.preventDefault();
+  let cliente = document.getElementById('clienteFiado').value;
+  let valor = document.getElementById('valorFiado').value;
+  let pagamento = document.getElementById('pagamentoFiado').value;
+  let data = document.getElementById('dataFiado').value;
+  salvarFiado(cliente, valor, pagamento, data);
+  alert('Fiado registrado!');
+  this.reset();
+  document.getElementById('dataFiado').value = new Date().toISOString().slice(0,10);
+});
 </script>
 
 </body>
