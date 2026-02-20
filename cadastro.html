@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cadastro - Tonel 333</title>
+<script src="app.js"></script>
 <style>
 body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5c3a00; }
 .topo { display:flex; justify-content: flex-end; align-items:center; margin-bottom:20px; }
@@ -11,6 +12,7 @@ body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5
 .voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
 label { display:block; margin-top:10px; }
 input { padding:5px; margin-top:5px; width:100%; max-width:300px; }
+button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -24,7 +26,7 @@ input { padding:5px; margin-top:5px; width:100%; max-width:300px; }
 
 <form id="formCadastro">
   <label>Nome:</label>
-  <input type="text" id="nomeCliente">
+  <input type="text" id="nomeCliente" required>
 
   <label>Telefone:</label>
   <input type="text" id="telefoneCliente">
@@ -32,8 +34,22 @@ input { padding:5px; margin-top:5px; width:100%; max-width:300px; }
   <label>Observações:</label>
   <input type="text" id="obsCliente">
 
-  <button type="submit" style="margin-top:10px;">Cadastrar</button>
+  <button type="submit">Cadastrar</button>
 </form>
+
+<script>
+document.getElementById('formCadastro').addEventListener('submit', function(e){
+  e.preventDefault();
+  let nome = document.getElementById('nomeCliente').value;
+  let telefone = document.getElementById('telefoneCliente').value;
+  let obs = document.getElementById('obsCliente').value;
+  let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+  clientes.push({ nome, telefone, obs });
+  localStorage.setItem('clientes', JSON.stringify(clientes));
+  alert('Cliente cadastrado!');
+  this.reset();
+});
+</script>
 
 </body>
 </html>
