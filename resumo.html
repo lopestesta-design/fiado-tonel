@@ -3,110 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonel 333 - Resumo</title>
+<title>Resumo - Tonel 333</title>
+<script src="app.js"></script>
 <style>
-body { font-family: Arial,sans-serif; background:#e6b800; color:#5c3a00; margin:0; padding:20px; display:flex; flex-direction:column; align-items:center; }
-.topo { display:flex; align-items:center; justify-content:center; width:100%; max-width:600px; margin-bottom:20px; position:relative; }
-.topo img { width:80px; position:absolute; left:0; }
-.topo h2 { font-size:24px; font-weight:bold; margin:0 auto; text-align:center; flex:1; }
-.voltar { align-self:flex-start; padding:10px 15px; margin-bottom:20px; font-weight:900; font-size:16px; border:4px double #5c3a00; border-radius:10px; background:transparent; color:#5c3a00; text-decoration:none; cursor:pointer; }
-.conteudo { width:100%; max-width:600px; }
-.resultado { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; font-size:16px; line-height:1.6; }
-.filtro { margin-top:10px; font-size:16px; padding:10px; border-radius:8px; border:none; background:#fff8dc; color:#5c3a00; }
-canvas { margin-top:20px; max-width:100%; }
+body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5c3a00; }
+.topo { display:flex; justify-content: flex-end; align-items:center; margin-bottom:20px; }
+.topo img { width:120px; }
+.voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
+h2 { margin-top:0; }
+p { font-size:18px; margin-top:10px; }
 </style>
 </head>
 <body>
 
-<header class="topo">
-<img src="logo.png" alt="Tonel 333">
-<h2>Resumo Financeiro</h2>
-</header>
-
-<a href="index.html" class="voltar">⬅ Voltar à Home</a>
-
-<div class="conteudo">
-<select id="filtroTempo" class="filtro" onchange="atualizarResumo()">
-<option value="tudo">Todos os períodos</option>
-<option value="semana">Última Semana</option>
-<option value="mes">Último Mês</option>
-<option value="ano">Último Ano</option>
-</select>
-
-<div class="resultado" id="resumoGeral"></div>
-<canvas id="graficoResumo" width="400" height="200"></canvas>
+<div class="topo">
+  <a href="index.html" class="voltar">←</a>
+  <img src="logo.png" alt="Tonel 333">
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<h2>Resumo Financeiro</h2>
+
+<h3>Hoje</h3>
+<p>Entradas: R$ <span id="totEntradaHoje"></span></p>
+<p>Saídas: R$ <span id="totSaidaHoje"></span></p>
+<p>Fiado: R$ <span id="totFiadoHoje"></span></p>
+
+<h3>Este Mês</h3>
+<p>Entradas: R$ <span id="totEntradaMes"></span></p>
+<p>Saídas: R$ <span id="totSaidaMes"></span></p>
+<p>Fiado: R$ <span id="totFiadoMes"></span></p>
+
+<h3>Este Ano</h3>
+<p>Entradas: R$ <span id="totEntradaAno"></span></p>
+<p>Saídas: R$ <span id="totSaidaAno"></span></p>
+<p>Fiado: R$ <span id="totFiadoAno"></span></p>
+
 <script>
-let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
-let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+document.getElementById('totEntradaHoje').textContent = calcularTotais('entradas','hoje');
+document.getElementById('totSaidaHoje').textContent = calcularTotais('saidas','hoje');
+document.getElementById('totFiadoHoje').textContent = calcularTotais('fiados','hoje');
 
-// Função para filtrar por período
-function filtrarPorPeriodo(array, periodo) {
-  if(periodo==='tudo') return array;
-  const agora = new Date();
-  return array.filter(item => {
-    const data = new Date(item.data);
-    if(periodo==='semana') return (agora - data)/(1000*60*60*24) <=7;
-    if(periodo==='mes') return data.getMonth()===agora.getMonth() && data.getFullYear()===agora.getFullYear();
-    if(periodo==='ano') return data.getFullYear()===agora.getFullYear();
-  });
-}
+document.getElementById('totEntradaMes').textContent = calcularTotais('entradas','mes');
+document.getElementById('totSaidaMes').textContent = calcularTotais('saidas','mes');
+document.getElementById('totFiadoMes').textContent = calcularTotais('fiados','mes');
 
-function totalPorForma(array) {
-  return array.reduce((acc,item)=>{
-    if(!acc[item.formaPagamento]) acc[item.formaPagamento]=0;
-    acc[item.formaPagamento]+=item.valor;
-    return acc;
-  }, {});
-}
-
-function atualizarResumo() {
-  const periodo = document.getElementById('filtroTempo').value;
-
-  let fiadoFiltrado = clientes.map(c => ({saldo:c.saldo, historico: filtrarPorPeriodo(c.historico, periodo)}));
-  let totalFiado = fiadoFiltrado.reduce((acc,c)=>acc + c.saldo,0);
-
-  let entradasFiltradas = filtrarPorPeriodo(entradas, periodo);
-  let saidasFiltradas = filtrarPorPeriodo(saidas, periodo);
-
-  let totalEntradas = entradasFiltradas.reduce((acc,e)=>acc+e.valor,0);
-  let totalSaidas = saidasFiltradas.reduce((acc,s)=>acc+s.valor,0);
-  let saldoGeral = totalEntradas - totalSaidas - totalFiado;
-
-  let entradasPorForma = totalPorForma(entradasFiltradas);
-  let saidasPorForma = totalPorForma(saidasFiltradas);
-
-  document.getElementById('resumoGeral').innerHTML = `
-    <b>Total Fiado:</b> R$ ${totalFiado.toFixed(2)}<br>
-    <b>Total Entradas:</b> R$ ${totalEntradas.toFixed(2)}<br>
-    &nbsp;&nbsp;• Dinheiro: R$ ${entradasPorForma.dinheiro?.toFixed(2)||0}<br>
-    &nbsp;&nbsp;• Pix: R$ ${entradasPorForma.pix?.toFixed(2)||0}<br>
-    &nbsp;&nbsp;• Débito: R$ ${entradasPorForma.debito?.toFixed(2)||0}<br>
-    &nbsp;&nbsp;• Crédito: R$ ${entradasPorForma.credito?.toFixed(2)||0}<br>
-    <b>Total Saídas:</b> R$ ${totalSaidas.toFixed(2)}<br>
-    &nbsp;&nbsp;• Dinheiro: R$ ${saidasPorForma.dinheiro?.toFixed(2)||0}<br>
-    &nbsp;&nbsp;• Pix: R$ ${saidasPorForma.pix?.toFixed(2)||0}<br>
-    &nbsp;&nbsp;• Débito: R$ ${saidasPorForma.debito?.toFixed(2)||0}<br>
-    &nbsp;&nbsp;• Crédito: R$ ${saidasPorForma.credito?.toFixed(2)||0}<br>
-    <b>Saldo Geral:</b> R$ ${saldoGeral.toFixed(2)}
-  `;
-
-  const ctx = document.getElementById('graficoResumo').getContext('2d');
-  if(window.grafico) window.grafico.destroy();
-  window.grafico = new Chart(ctx, {
-    type:'bar',
-    data:{
-      labels:['Fiado','Entradas','Saídas','Saldo Geral'],
-      datasets:[{label:'R$',data:[totalFiado,totalEntradas,totalSaidas,saldoGeral],backgroundColor:['#dc2626','#16a34a','#f59e0b','#5c3a00']}]
-    },
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
-  });
-}
-
-atualizarResumo();
+document.getElementById('totEntradaAno').textContent = calcularTotais('entradas','ano');
+document.getElementById('totSaidaAno').textContent = calcularTotais('saidas','ano');
+document.getElementById('totFiadoAno').textContent = calcularTotais('fiados','ano');
 </script>
 
 </body>
