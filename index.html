@@ -76,6 +76,7 @@ button:hover {
   border-radius:8px;
   box-shadow:0 2px 6px rgba(0,0,0,0.1);
   word-wrap:break-word;
+  position:relative;
 }
 
 #totalSaldo {
@@ -85,6 +86,20 @@ button:hover {
   font-weight:bold;
   color:#ff6600;
 }
+
+/* Ícones de edição/exclusão */
+.cliente .acoes {
+  position:absolute;
+  top:8px;
+  right:8px;
+  font-size:18px;
+}
+.cliente .acoes span {
+  cursor:pointer;
+  margin-left:6px;
+}
+.cliente .acoes span.edit { color:#ffc107; }
+.cliente .acoes span.delete { color:#dc3545; }
 </style>
 </head>
 <body>
@@ -161,15 +176,15 @@ function cadastrarCliente() {
   let telefone = document.getElementById("telefone").value.trim();
   if(!nome || !telefone){ alert("Preencha todos os campos"); return; }
   clientes.push({ nome, telefone, saldo:0, historico:[] });
-  document.getElementById("nome").value = "";
-  document.getElementById("telefone").value = "";
+  document.getElementById("nome").value="";
+  document.getElementById("telefone").value="";
   salvarFiado();
 }
 
 function atualizarSelectClientes() {
   let select = document.getElementById("clienteSelect");
   select.innerHTML = "";
-  clientes.forEach(c => {
+  clientes.forEach(c=>{
     let option = document.createElement("option");
     option.value = c.nome;
     option.textContent = c.nome;
@@ -181,12 +196,12 @@ function adicionarConsumo() {
   let nome = document.getElementById("clienteSelect").value;
   let valor = parseFloat(document.getElementById("valor").value);
   if(!valor){ alert("Digite um valor"); return; }
-  let cliente = clientes.find(c => c.nome === nome);
+  let cliente = clientes.find(c=>c.nome===nome);
   if(cliente){
     cliente.saldo += valor;
     cliente.historico.push({ data:new Date().toLocaleDateString(), tipo:"Consumo", valor });
   }
-  document.getElementById("valor").value = "";
+  document.getElementById("valor").value="";
   salvarFiado();
 }
 
@@ -194,40 +209,43 @@ function registrarPagamento() {
   let nome = document.getElementById("clienteSelect").value;
   let valor = parseFloat(document.getElementById("valor").value);
   if(!valor){ alert("Digite um valor"); return; }
-  let cliente = clientes.find(c => c.nome === nome);
+  let cliente = clientes.find(c=>c.nome===nome);
   if(cliente){
     cliente.saldo -= valor;
     if(cliente.saldo<0) cliente.saldo=0;
     cliente.historico.push({ data:new Date().toLocaleDateString(), tipo:"Pagamento", valor });
   }
-  document.getElementById("valor").value = "";
+  document.getElementById("valor").value="";
   salvarFiado();
 }
 
-function enviarWhatsApp(index) {
+function enviarWhatsApp(index){
   let cliente = clientes[index];
   let telefone = cliente.telefone.replace(/\D/g,"");
   let mensagem = "Extrato - Tonel 333\n\n";
   cliente.historico.forEach(h=>mensagem+=`${h.data} - ${h.tipo} - R$ ${h.valor.toFixed(2)}\n`);
   mensagem += `\nSaldo atual: R$ ${cliente.saldo.toFixed(2)}\n\nChave PIX: 14341419000111`;
-  let url = "https://wa.me/"+telefone+"?text="+encodeURIComponent(mensagem);
+  let url="https://wa.me/"+telefone+"?text="+encodeURIComponent(mensagem);
   window.open(url,"_blank");
 }
 
 function atualizarListaClientes(){
-  let lista = document.getElementById("lista");
+  let lista=document.getElementById("lista");
   lista.innerHTML="";
   clientes.forEach((c,i)=>{
     let historicoHTML = c.historico.map(h=>`${h.data} - ${h.tipo} - R$ ${h.valor.toFixed(2)}`).join("<br>");
     lista.innerHTML += `
       <div class="cliente">
-        <b>${c.nome}</b><br>
+        <b>${c.nome}</b>
+        <div class="acoes">
+          <span class="edit" onclick="editarCliente(${i})">✏️</span>
+          <span class="delete" onclick="excluirCliente(${i})">❌</span>
+        </div>
+        <br>
         Telefone: ${c.telefone}<br>
         <b>Saldo: R$ ${c.saldo.toFixed(2)}</b><br><br>
         <b>Histórico:</b><br>${historicoHTML || "Sem movimentações"}<br><br>
         <button class="btn-whats" onclick="enviarWhatsApp(${i})">WhatsApp</button>
-        <button style="background:#ffc107;color:#000;margin-left:5px;" onclick="editarCliente(${i})">Editar</button>
-        <button style="background:#dc3545;color:#fff;margin-left:5px;" onclick="excluirCliente(${i})">Excluir</button>
       </div>`;
   });
 }
