@@ -5,93 +5,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Entradas</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #e6b800;
+    color: #5c3a00;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .topo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .topo img {
+    width: 80px;
+    height: auto;
+    position: absolute;
+    left: 0;
+  }
+
+  .topo h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 auto;
+    text-align: center;
+    flex: 1;
+  }
+
+  .voltar {
+    align-self: flex-start;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    font-weight: 900;
+    font-size: 16px;
+    border: 4px double #5c3a00;
+    border-radius: 10px;
+    background: transparent;
+    color: #5c3a00;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .voltar:hover {
+    background: rgba(92, 58, 0, 0.1);
+  }
+
+  .conteudo {
+    width: 100%;
+    max-width: 600px;
+  }
+
+</style>
 </head>
 <body>
 
-<header>
+<header class="topo">
   <img src="logo.png" alt="Tonel 333">
-  <h1>Entradas</h1>
+  <h2>Entradas</h2>
 </header>
 
-<h3>Registrar Entrada</h3>
-<input type="text" id="descricao" placeholder="Descrição">
-<select id="forma">
-  <option value="Dinheiro">Dinheiro</option>
-  <option value="Pix">Pix</option>
-  <option value="Débito">Débito</option>
-  <option value="Crédito">Crédito</option>
-</select>
-<input type="number" id="valor" placeholder="Valor">
-<button onclick="adicionarEntrada()">Adicionar Entrada</button>
+<a href="index.html" class="voltar">⬅ Voltar à Home</a>
 
-<h3>Entradas Registradas</h3>
-<div id="lista"></div>
-
-<button onclick="exportarBackup()">Exportar Backup</button>
-<input type="file" id="importar" onchange="importarBackup(this.files[0])">
-
-<script>
-let entradas = JSON.parse(localStorage.getItem("entradas")) || [];
-
-function salvar() {
-  localStorage.setItem("entradas", JSON.stringify(entradas));
-  atualizarLista();
-}
-
-function carregar() {
-  entradas = JSON.parse(localStorage.getItem("entradas")) || [];
-  atualizarLista();
-}
-
-function adicionarEntrada() {
-  let desc = document.getElementById("descricao").value.trim();
-  let forma = document.getElementById("forma").value;
-  let valor = parseFloat(document.getElementById("valor").value);
-  if(!desc || !valor){ alert("Preencha todos os campos"); return; }
-
-  entradas.push({descricao: desc, forma, valor, data: new Date().toLocaleDateString()});
-  document.getElementById("descricao").value = "";
-  document.getElementById("valor").value = "";
-  salvar();
-}
-
-function atualizarLista() {
-  let lista = document.getElementById("lista");
-  lista.innerHTML = "";
-  entradas.forEach((e,i)=>{
-    lista.innerHTML += `<div class="cliente-box">
-      <b>${e.descricao}</b> - ${e.forma} - R$ ${e.valor.toFixed(2)}<br>
-      <small>${e.data}</small>
-      <span style="float:right;cursor:pointer;color:red;" onclick="excluir(${i})">✖</span>
-    </div>`;
-  });
-}
-
-function excluir(i){
-  if(confirm("Deseja realmente excluir esta entrada?")){
-    entradas.splice(i,1);
-    salvar();
-  }
-}
-
-function exportarBackup(){
-  const blob = new Blob([JSON.stringify(entradas)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = "backup_entradas.json"; a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importarBackup(file){
-  const reader = new FileReader();
-  reader.onload = e=>{
-    entradas = JSON.parse(e.target.result);
-    salvar();
-  };
-  reader.readAsText(file);
-}
-
-carregar();
-</script>
+<div class="conteudo">
+  <!-- Conteúdo de entradas -->
+</div>
 
 </body>
 </html>
