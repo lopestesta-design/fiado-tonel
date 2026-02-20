@@ -1,31 +1,28 @@
 // app.js
-// Funções para Fiado, Entradas e Saídas
-// Usa localStorage para salvar dados
 
-// Salvar Fiado
-function salvarFiado(cliente, valor, pagamento, data) {
+// Fiado
+function salvarFiado(cliente, valor, pagamento, data){
   let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-  fiados.push({ cliente, valor: parseFloat(valor), pagamento, data });
+  fiados.push({cliente, valor:parseFloat(valor), pagamento, data});
   localStorage.setItem('fiados', JSON.stringify(fiados));
 }
 
-// Salvar Entrada
-function salvarEntrada(valor, forma, taxa, data) {
+// Entradas
+function salvarEntrada(valor, forma, taxa, data){
   let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
-  entradas.push({ valor: parseFloat(valor), forma, taxa: parseFloat(taxa||0), data });
+  entradas.push({valor:parseFloat(valor), forma, taxa:parseFloat(taxa||0), data});
   localStorage.setItem('entradas', JSON.stringify(entradas));
 }
 
-// Salvar Saída
-function salvarSaida(valor, descricao, data) {
+// Saídas
+function salvarSaida(valor, descricao, data){
   let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
-  saidas.push({ valor: parseFloat(valor), descricao, data });
+  saidas.push({valor:parseFloat(valor), descricao, data});
   localStorage.setItem('saidas', JSON.stringify(saidas));
 }
 
-// Função para calcular totais
-function calcularTotais(tipo, periodo) {
-  // tipo: 'fiados', 'entradas', 'saidas'
+// Totais
+function calcularTotais(tipo, periodo){
   let dados = JSON.parse(localStorage.getItem(tipo)) || [];
   if(periodo==='hoje'){
     let hoje = new Date().toISOString().slice(0,10);
@@ -50,7 +47,7 @@ function calcularTotais(tipo, periodo) {
   let total = 0;
   if(tipo==='fiados' || tipo==='entradas'){
     total = dados.reduce((sum,d)=>{
-      if(d.tipo==='entradas') return sum + d.valor - (d.taxa||0);
+      if(tipo==='entradas') return sum + d.valor - (d.taxa||0);
       return sum + d.valor;
     },0);
   } else if(tipo==='saidas'){
@@ -58,6 +55,3 @@ function calcularTotais(tipo, periodo) {
   }
   return total.toFixed(2);
 }
-
-// Para testar
-// console.log(calcularTotais('fiados','hoje'));
