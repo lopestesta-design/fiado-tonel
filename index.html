@@ -3,73 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tonel 333 - Home</title>
-<link rel="icon" href="logo-app.png" type="image/png">
-<link rel="apple-touch-icon" href="logo-app.png">
-<link rel="shortcut icon" href="logo-app.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#e6b800">
-<meta name="application-name" content="Tonel 333">
+<title>Tonel 333 - App</title>
 <style>
 body {
-  font-family: Arial, sans-serif;
-  background:#e6b800;
-  color:#5c3a00;
-  margin:0;
-  padding:0;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  min-height:100vh;
+    font-family: Arial,sans-serif;
+    background: #f0c808; /* amarelo da logo */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    color: #5c3a00;
 }
-.topo {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  margin-bottom:50px;
-}
-.topo img {
-  width:180px;
-  margin-bottom:20px;
+.logo {
+    margin-top: 60px;
+    margin-bottom: 40px;
+    width: 220px;
 }
 .botoes {
-  display:grid;
-  grid-template-columns: repeat(2, 160px);
-  gap:20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 90%;
+    max-width: 400px;
 }
-.botoes a {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:15px;
-  font-weight:bold;
-  font-size:16px;
-  border:4px double #5c3a00;
-  border-radius:10px;
-  text-decoration:none;
-  color:#5c3a00;
-  background:transparent;
-  text-align:center;
-  cursor:pointer;
+.botoes button {
+    padding: 15px;
+    font-weight: bold;
+    border: 4px double #5c3a00;
+    background: #fff8dc;
+    color: #5c3a00;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.2s;
 }
-.botoes a:hover {
-  background:#fff8dc;
+.botoes button:hover {
+    background: #ffe680;
 }
 </style>
 </head>
 <body>
 
-<div class="topo">
-  <img src="logo.png" alt="Tonel 333">
-</div>
+<img src="logo.png" alt="Tonel 333" class="logo">
 
 <div class="botoes">
-  <a href="entradas.html">Entradas</a>
-  <a href="saidas.html">Saídas</a>
-  <a href="fiado.html">Fiado</a>
-  <a href="resumo.html">Resumo</a>
-  <a href="cadastro.html">Cadastro</a>
+    <button onclick="window.location.href='entradas.html'">Entradas</button>
+    <button onclick="window.location.href='saidas.html'">Saídas</button>
+    <button onclick="window.location.href='fiado.html'">Fiado</button>
+    <button onclick="window.location.href='resumo.html'">Resumo</button>
+    <button onclick="window.location.href='graficos.html'">Gráficos</button>
 </div>
 
 </body>
