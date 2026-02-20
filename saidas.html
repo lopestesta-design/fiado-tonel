@@ -11,8 +11,9 @@ body { font-family: Arial,sans-serif; background:#e6b800; color:#5c3a00; margin:
 .topo h2 { font-size:24px; font-weight:bold; margin:0 auto; text-align:center; flex:1; }
 .voltar { align-self:flex-start; padding:10px 15px; margin-bottom:20px; font-weight:900; font-size:16px; border:4px double #5c3a00; border-radius:10px; background:transparent; color:#5c3a00; text-decoration:none; cursor:pointer; }
 .conteudo { width:100%; max-width:600px; }
-input, button { width:100%; padding:12px; margin-top:10px; font-size:16px; border-radius:8px; border:none; }
+input, select, button { width:100%; padding:12px; margin-top:10px; font-size:16px; border-radius:8px; border:none; }
 input { background:#fff8dc; color:#5c3a00; }
+select { background:#fff8dc; color:#5c3a00; }
 button { font-weight:bold; cursor:pointer; }
 .btn-add { background:#dc2626; color:white; }
 .saida { background:#fff8dc; padding:15px; margin-top:15px; border-radius:10px; }
@@ -32,7 +33,14 @@ button { font-weight:bold; cursor:pointer; }
 <h3>Adicionar Saída</h3>
 <input type="text" id="descricaoSaida" placeholder="Descrição">
 <input type="number" id="valorSaida" placeholder="Valor">
-<input type="date" id="dataSaida" value="">
+<input type="date" id="dataSaida">
+<select id="formaPagamentoSaida">
+  <option value="dinheiro">Dinheiro</option>
+  <option value="pix">Pix</option>
+  <option value="debito">Débito</option>
+  <option value="credito">Crédito</option>
+</select>
+<input type="number" id="taxaCartaoSaida" placeholder="Taxa % (se débito/crédito)" step="0.01">
 <button class="btn-add" onclick="adicionarSaida()">Adicionar</button>
 
 <div id="listaSaidas"></div>
@@ -47,7 +55,7 @@ function atualizarSaidas() {
   saidas.forEach((s,i)=>{
     lista.innerHTML += `
       <div class="saida">
-        ${s.data} - ${s.descricao} - R$ ${s.valor.toFixed(2)}
+        ${s.data} - ${s.descricao} - R$ ${s.valor.toFixed(2)} - ${s.formaPagamento} ${s.taxa>0?`- Taxa: ${s.taxa}%`:''}
         <span class="icon" onclick="excluirSaida(${i})">x</span>
       </div>
     `;
@@ -59,8 +67,15 @@ function adicionarSaida() {
   let desc = document.getElementById("descricaoSaida").value.trim();
   let val = parseFloat(document.getElementById("valorSaida").value);
   let data = document.getElementById("dataSaida").value || new Date().toISOString().split("T")[0];
+  let forma = document.getElementById("formaPagamentoSaida").value;
+  let taxa = parseFloat(document.getElementById("taxaCartaoSaida").value) || 0;
+
   if(!desc || !val) return alert("Informe descrição e valor");
-  saidas.push({descricao:desc, valor:val, data:data});
+  
+  // aplica taxa se pagamento for débito ou crédito
+  if(forma==='debito' || forma==='credito') val = val * (1 - taxa/100);
+  
+  saidas.push({descricao:desc, valor:val, data:data, formaPagamento:forma, taxa: taxa});
   atualizarSaidas();
 }
 
@@ -70,6 +85,9 @@ function excluirSaida(i) {
     atualizarSaidas();
   }
 }
+
+// coloca data de hoje como padrão
+document.getElementById("dataSaida").value = new Date().toISOString().split("T")[0];
 
 atualizarSaidas();
 </script>
