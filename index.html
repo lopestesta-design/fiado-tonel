@@ -7,28 +7,35 @@
 <link rel="stylesheet" href="style.css">
 <style>
   body {
-    font-family: Arial;
-    background: #111;
-    color: white;
+    font-family: Arial, sans-serif;
+    background: #ffcc00; /* Amarelo total */
+    color: #111;
     text-align: center;
-    padding: 20px;
+    padding: 40px 20px;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 
   header img {
-    width: 150px;
-    margin-bottom: 10px;
+    width: 250px; /* Logo maior */
+    margin-bottom: 30px;
   }
 
   h1 {
-    margin-bottom: 40px;
+    font-size: 36px;
+    margin-bottom: 50px;
   }
 
   .botao {
     display: block;
-    width: 80%;
-    max-width: 300px;
+    width: 70%;
+    max-width: 250px;
     margin: 10px auto;
-    padding: 15px;
+    padding: 12px;
     font-size: 18px;
     font-weight: bold;
     border: none;
@@ -36,12 +43,18 @@
     cursor: pointer;
     text-decoration: none;
     color: white;
+    opacity: 0.9;
+    transition: 0.2s;
+  }
+
+  .botao:hover {
+    opacity: 1;
   }
 
   .fiado { background: #28a745; }
   .entradas { background: #16a34a; }
   .saidas { background: #dc2626; }
-  .resumo { background: #ffcc00; color: #111; }
+  .resumo { background: #111; }
 </style>
 </head>
 <body>
