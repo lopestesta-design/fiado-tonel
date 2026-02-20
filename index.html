@@ -7,8 +7,8 @@
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #f0f0f0; /* fundo mais claro */
-  color: #222; /* texto escuro */
+  background: #f0f0f0;
+  color: #222;
   padding: 15px;
   margin: 0;
 }
@@ -17,6 +17,17 @@ h1,h3 {
   text-align: center;
   margin-bottom: 10px;
   color: #333;
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+h1 img {
+  height: 50px;
 }
 
 input, select, button {
@@ -52,12 +63,12 @@ button:hover {
 .btn-backup { background: #ff9800; color: #fff; }
 
 .cliente, .entry, .exit {
-  background: #fff; /* caixas claras */
+  background: #fff;
   color: #222;
   padding: 12px;
   margin-top: 10px;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* leve sombra */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   word-wrap: break-word;
 }
 
@@ -72,7 +83,11 @@ button:hover {
 </head>
 <body>
 
-<h1>Tonel 333 - Controle Completo</h1>
+<h1>
+  <img src="logo.png" alt="Tonel 333">
+  Tonel 333 - Controle Completo
+</h1>
+
 <div id="totalSaldo">Saldo Atual: R$ 0,00</div>
 
 <!-- Cadastrar Cliente -->
@@ -276,4 +291,4 @@ function restaurarBackup(){
 atualizarHistorico();
 </script>
 </body>
-</html>
+  </html>
