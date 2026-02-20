@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tonel 333 - Resumo Financeiro</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -13,19 +14,47 @@
   <h1>Resumo Financeiro</h1>
 </header>
 
+<h3>Filtrar por Período</h3>
+<select id="filtro" onchange="atualizarResumo()">
+  <option value="todos">Todos</option>
+  <option value="semana">Última Semana</option>
+  <option value="mes">Último Mês</option>
+  <option value="ano">Último Ano</option>
+</select>
+
 <h3>Resumo Geral</h3>
 <div id="resumo"></div>
+
+<h3>Gráficos</h3>
+<canvas id="graficoEntradas" height="150"></canvas>
+<canvas id="graficoSaidas" height="150"></canvas>
+<canvas id="graficoFiado" height="150"></canvas>
 
 <script>
 let entradas = JSON.parse(localStorage.getItem("entradas")) || [];
 let saidas = JSON.parse(localStorage.getItem("saidas")) || [];
 let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
 
+function filtrarPorPeriodo(arr) {
+  const filtro = document.getElementById("filtro").value;
+  const hoje = new Date();
+  return arr.filter(item => {
+    const data = new Date(item.data.split('/').reverse().join('-'));
+    if(filtro === "semana") return (hoje - data)/(1000*60*60*24) <= 7;
+    if(filtro === "mes") return (hoje - data)/(1000*60*60*24) <= 30;
+    if(filtro === "ano") return (hoje - data)/(1000*60*60*24) <= 365;
+    return true;
+  });
+}
+
 function atualizarResumo() {
-  let totalEntradas = entradas.reduce((a,e)=>a+e.valor,0);
-  let totalSaidas = saidas.reduce((a,e)=>a+e.valor,0);
-  let totalFiado = clientes.reduce((a,c)=>a+c.saldo,0);
-  let saldo = totalEntradas - totalSaidas;
+  const entradasFiltradas = filtrarPorPeriodo(entradas);
+  const saidasFiltradas = filtrarPorPeriodo(saidas);
+
+  const totalEntradas = entradasFiltradas.reduce((a,e)=>a+e.valor,0);
+  const totalSaidas = saidasFiltradas.reduce((a,e)=>a+e.valor,0);
+  const totalFiado = clientes.reduce((a,c)=>a+c.saldo,0);
+  const saldo = totalEntradas - totalSaidas;
 
   document.getElementById("resumo").innerHTML = `
     <div class="cliente-box">
@@ -35,6 +64,44 @@ function atualizarResumo() {
       <b>Saldo Líquido:</b> R$ ${saldo.toFixed(2)}
     </div>
   `;
+
+  atualizarGraficos(entradasFiltradas, saidasFiltradas, clientes);
+}
+
+function atualizarGraficos(entradasFiltradas, saidasFiltradas, clientes) {
+  // Entradas por forma
+  const formas = ["Dinheiro","Pix","Débito","Crédito"];
+  const valoresEntradas = formas.map(f => entradasFiltradas.filter(e=>e.forma===f).reduce((a,b)=>a+b.valor,0));
+  const valoresSaidas = formas.map(f => saidasFiltradas.filter(e=>e.forma===f).reduce((a,b)=>a+b.valor,0));
+
+  // Gráfico de Entradas
+  new Chart(document.getElementById("graficoEntradas"), {
+    type: 'bar',
+    data: {
+      labels: formas,
+      datasets: [{ label: 'Entradas', data: valoresEntradas, backgroundColor: '#28a745' }]
+    },
+    options: { responsive:true, plugins:{ legend:{ display:false } } }
+  });
+
+  // Gráfico de Saídas
+  new Chart(document.getElementById("graficoSaidas"), {
+    type: 'bar',
+    data: {
+      labels: formas,
+      datasets: [{ label: 'Saídas', data: valoresSaidas, backgroundColor: '#dc2626' }]
+    },
+    options: { responsive:true, plugins:{ legend:{ display:false } } }
+  });
+
+  // Gráfico de Fiado
+  const nomesClientes = clientes.map(c=>c.nome);
+  const saldos = clientes.map(c=>c.saldo);
+  new Chart(document.getElementById("graficoFiado"), {
+    type:'bar',
+    data: { labels: nomesClientes, datasets:[{label:'Fiado', data:saldos, backgroundColor:'#ffcc00'}] },
+    options:{ responsive:true, plugins:{ legend:{ display:false } } }
+  });
 }
 
 atualizarResumo();
