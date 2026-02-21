@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Entradas - Tonel 333</title>
-
 <style>
 body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
 .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
@@ -14,7 +13,6 @@ input,select,button{padding:6px;margin:5px 0;width:100%;}
 .card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
 </style>
 </head>
-
 <body>
 
 <div class="topo">
@@ -43,20 +41,44 @@ input,select,button{padding:6px;margin:5px 0;width:100%;}
 <h3>Histórico</h3>
 <div id="listaEntradas"></div>
 
-<script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
+  authDomain: "tonel-333.firebaseapp.com",
+  projectId: "tonel-333",
+  storageBucket: "tonel-333.firebasestorage.app",
+  messagingSenderId: "1078081349485",
+  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Configuração de nuvem
+function salvarNaNuvem() {
+  const dados = {
+    clientes: JSON.parse(localStorage.getItem('clientes')) || [],
+    entradas: JSON.parse(localStorage.getItem('entradas')) || [],
+    fiados: JSON.parse(localStorage.getItem('fiados')) || []
+  };
+  db.collection("backup").doc("dados").set(dados);
+}
+
+// ================= ENTRADAS =================
 document.getElementById('data').valueAsDate = new Date();
 
 function carregarClientes(){
     let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
     let select = document.getElementById('cliente');
     select.innerHTML="";
-
     if(clientes.length === 0){
         select.innerHTML="<option>Nenhum cliente cadastrado</option>";
         return;
     }
-
     clientes.forEach(c=>{
         select.innerHTML+=`<option value="${c.nome}">${c.nome}</option>`;
     });
@@ -65,7 +87,6 @@ function carregarClientes(){
 function verCliente(){
     let pag = document.getElementById('pagamento').value;
     let select = document.getElementById('cliente');
-
     if(pag==="fiado"){
         carregarClientes();
         select.style.display="block";
@@ -75,7 +96,6 @@ function verCliente(){
 }
 
 function salvar(){
-
     let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
     let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
 
@@ -86,7 +106,6 @@ function salvar(){
     let cliente = document.getElementById('cliente').value;
 
     if(!descricao || isNaN(valor)) return;
-
     if(pagamento==="fiado" && (!cliente || cliente==="Nenhum cliente cadastrado")){
         alert("Cadastre um cliente primeiro.");
         return;
@@ -94,19 +113,17 @@ function salvar(){
 
     entradas.push({data,descricao,valor,pagamento,cliente});
     localStorage.setItem('entradas',JSON.stringify(entradas));
-
     if(pagamento==="fiado"){
         let clienteFiado = fiados.find(f=>f.cliente===cliente);
-
         if(!clienteFiado){
             clienteFiado={cliente,consumos:[],pagamentos:[]};
             fiados.push(clienteFiado);
         }
-
         clienteFiado.consumos.push({data,valor});
         localStorage.setItem('fiados',JSON.stringify(fiados));
     }
 
+    salvarNaNuvem(); // ✅ salva imediatamente na nuvem
     listarEntradas();
 }
 
@@ -114,7 +131,6 @@ function listarEntradas(){
     let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
     let div = document.getElementById('listaEntradas');
     div.innerHTML="";
-
     entradas.forEach((e,i)=>{
         div.innerHTML+=`
         <div class="card">
@@ -123,8 +139,7 @@ function listarEntradas(){
         ${e.pagamento==="fiado"?" - "+e.cliente:""}<br>
         <button onclick="editar(${i})">✏</button>
         <button onclick="excluir(${i})">🗑</button>
-        </div>
-        `;
+        </div>`;
     });
 }
 
@@ -132,10 +147,8 @@ function editar(i){
     let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
     let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
     let e = entradas[i];
-
     let novoValor = parseFloat(prompt("Novo valor:",e.valor));
     if(isNaN(novoValor)) return;
-
     if(e.pagamento==="fiado"){
         let f = fiados.find(x=>x.cliente===e.cliente);
         if(f){
@@ -144,19 +157,17 @@ function editar(i){
             localStorage.setItem('fiados',JSON.stringify(fiados));
         }
     }
-
     e.valor=novoValor;
     localStorage.setItem('entradas',JSON.stringify(entradas));
+    salvarNaNuvem(); // ✅ salva imediatamente
     listarEntradas();
 }
 
 function excluir(i){
     if(!confirm("Excluir lançamento?")) return;
-
     let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
     let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
     let e = entradas[i];
-
     if(e.pagamento==="fiado"){
         let f = fiados.find(x=>x.cliente===e.cliente);
         if(f){
@@ -164,17 +175,13 @@ function excluir(i){
             localStorage.setItem('fiados',JSON.stringify(fiados));
         }
     }
-
     entradas.splice(i,1);
     localStorage.setItem('entradas',JSON.stringify(entradas));
+    salvarNaNuvem(); // ✅ salva imediatamente
     listarEntradas();
 }
 
-window.onload = function(){
-    carregarClientes();
-    listarEntradas();
-};
-
+listarEntradas();
 </script>
 </body>
 </html>
