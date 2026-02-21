@@ -10,14 +10,43 @@ body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
 .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 .logo{width:100px;}
 .voltar{text-decoration:none;font-size:22px;color:#5c3a00;}
-input,select,button{padding:6px;margin:5px 0;width:100%;}
+input,button{padding:6px;margin:5px 0;width:100%;}
+
+/* Cards */
 .card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
 button{cursor:pointer;}
-/* 🔹 Ajuste do select de clientes */
-#cliente {
-    display: none;
-    max-height: 200px;   /* altura máxima */
-    overflow-y: auto;    /* habilita rolagem vertical */
+
+/* Dropdown customizado */
+.dropdown {
+    position: relative;
+    margin:5px 0;
+}
+.dropdown-toggle {
+    padding:6px;
+    border:1px solid #5c3a00;
+    background:#fff8dc;
+    border-radius:4px;
+    cursor:pointer;
+    user-select:none;
+}
+.dropdown-list {
+    position: absolute;
+    top:100%;
+    left:0;
+    right:0;
+    max-height:200px;
+    border:1px solid #5c3a00;
+    background:#fff;
+    overflow-y:auto;
+    display:none;
+    z-index:1000;
+}
+.dropdown-list div {
+    padding:6px;
+    cursor:pointer;
+}
+.dropdown-list div:hover {
+    background:#ffe680;
 }
 </style>
 </head>
@@ -43,7 +72,11 @@ button{cursor:pointer;}
 <option value="fiado">Fiado</option>
 </select>
 
-<select id="cliente"></select>
+<!-- Dropdown customizado para clientes -->
+<div class="dropdown" id="dropdownCliente" style="display:none;">
+    <div class="dropdown-toggle" id="clienteSelecionado">Selecione o cliente</div>
+    <div class="dropdown-list" id="listaClientes"></div>
+</div>
 
 <button onclick="salvar()">Salvar</button>
 
@@ -53,45 +86,56 @@ button{cursor:pointer;}
 <script>
 document.getElementById('data').valueAsDate = new Date();
 
-// Função confiável para carregar clientes no select
+let clienteAtual = "";
+
+// Carrega clientes na dropdown
 function carregarClientes(){
     let clientes = JSON.parse(localStorage.getItem('clientes') || "[]");
-    let select = document.getElementById('cliente');
-    
-    // Limpa o select
-    while(select.firstChild){
-        select.removeChild(select.firstChild);
-    }
+    let lista = document.getElementById('listaClientes');
+    lista.innerHTML = "";
 
     if(clientes.length === 0){
-        let option = document.createElement("option");
-        option.textContent = "Nenhum cliente cadastrado";
-        option.disabled = true;
-        select.appendChild(option);
+        let div = document.createElement("div");
+        div.textContent = "Nenhum cliente cadastrado";
+        div.style.pointerEvents = "none";
+        lista.appendChild(div);
+        clienteAtual = "";
+        document.getElementById('clienteSelecionado').textContent = "Nenhum cliente";
         return;
     }
 
     clientes.forEach(c => {
         if(c && c.nome){
-            let option = document.createElement("option");
-            option.value = c.nome;
-            option.textContent = c.nome;
-            select.appendChild(option);
+            let div = document.createElement("div");
+            div.textContent = c.nome;
+            div.onclick = function(){
+                clienteAtual = c.nome;
+                document.getElementById('clienteSelecionado').textContent = c.nome;
+                document.getElementById('listaClientes').style.display = "none";
+            };
+            lista.appendChild(div);
         }
     });
 }
 
-// Mostrar select de clientes apenas para Fiado
+// Mostra dropdown somente para Fiado
 function verCliente(){
     let pag = document.getElementById('pagamento').value;
-    let select = document.getElementById('cliente');
+    let dropdown = document.getElementById('dropdownCliente');
 
     if(pag === "fiado"){
+        dropdown.style.display = "block";
         carregarClientes();
-        select.style.display = "block";
     } else {
-        select.style.display = "none";
+        dropdown.style.display = "none";
+        clienteAtual = "";
     }
+}
+
+// Toggle dropdown
+document.getElementById('clienteSelecionado').onclick = function(){
+    let lista = document.getElementById('listaClientes');
+    lista.style.display = (lista.style.display === "block") ? "none" : "block";
 }
 
 // Salvar entrada
@@ -103,25 +147,22 @@ function salvar(){
     let descricao = document.getElementById('descricao').value;
     let valor = parseFloat(document.getElementById('valor').value);
     let pagamento = document.getElementById('pagamento').value;
-    let cliente = document.getElementById('cliente').value;
 
     if(!descricao || isNaN(valor)) return;
 
-    if(pagamento === "fiado" && (!cliente || cliente === "")){
+    if(pagamento === "fiado" && !clienteAtual){
         alert("Cadastre um cliente primeiro.");
         return;
     }
 
-    // Adiciona entrada
-    entradas.push({data,descricao,valor,pagamento,cliente});
+    entradas.push({data,descricao,valor,pagamento,cliente: clienteAtual});
     localStorage.setItem('entradas',JSON.stringify(entradas));
 
-    // Atualiza Fiado
     if(pagamento === "fiado"){
-        let clienteFiado = fiados.find(f => f.cliente === cliente);
+        let clienteFiado = fiados.find(f => f.cliente === clienteAtual);
 
         if(!clienteFiado){
-            clienteFiado = {cliente,consumos:[],pagamentos:[]};
+            clienteFiado = {cliente: clienteAtual, consumos: [], pagamentos: []};
             fiados.push(clienteFiado);
         }
 
@@ -130,8 +171,12 @@ function salvar(){
     }
 
     listarEntradas();
+
+    // Limpa campos
     document.getElementById('descricao').value="";
     document.getElementById('valor').value="";
+    clienteAtual = "";
+    document.getElementById('clienteSelecionado').textContent = "Selecione o cliente";
 }
 
 // Listar entradas
