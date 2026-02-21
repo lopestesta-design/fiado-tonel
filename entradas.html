@@ -28,7 +28,7 @@ body {
     color: #5c3a00;
 }
 
-input, button, select {
+input, button {
     padding: 6px;
     margin: 5px 0;
     font-size: 16px;
@@ -63,10 +63,10 @@ input, button, select {
     top: 100%;
     left: 0;
     right: 0;
-    max-height: 50vh; /* metade da tela para rolar todos os clientes */
+    max-height: 50vh; /* metade da tela para rolagem */
     border: 1px solid #5c3a00;
     background: #fff;
-    overflow-y: auto;
+    overflow-y: scroll; /* força scroll real */
     display: none;
     z-index: 1000;
 }
@@ -74,6 +74,7 @@ input, button, select {
 .dropdown-list div {
     padding: 6px;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .dropdown-list div:hover {
@@ -119,7 +120,7 @@ document.getElementById('data').valueAsDate = new Date();
 
 let clienteAtual = "";
 
-// Carrega clientes na dropdown
+// Carregar clientes
 function carregarClientes(){
     let clientes = JSON.parse(localStorage.getItem('clientes') || "[]");
     let lista = document.getElementById('listaClientes');
@@ -142,14 +143,14 @@ function carregarClientes(){
             div.onclick = function(){
                 clienteAtual = c.nome;
                 document.getElementById('clienteSelecionado').textContent = c.nome;
-                document.getElementById('listaClientes').style.display = "none";
+                lista.style.display = "none";
             };
             lista.appendChild(div);
         }
     });
 }
 
-// Mostra dropdown somente para Fiado
+// Mostrar dropdown somente para Fiado
 function verCliente(){
     let pag = document.getElementById('pagamento').value;
     let dropdown = document.getElementById('dropdownCliente');
@@ -163,7 +164,7 @@ function verCliente(){
     }
 }
 
-// Toggle dropdown
+// Toggle da lista de clientes
 document.getElementById('clienteSelecionado').onclick = function(){
     let lista = document.getElementById('listaClientes');
     lista.style.display = (lista.style.display === "block") ? "none" : "block";
@@ -203,7 +204,7 @@ function salvar(){
 
     listarEntradas();
 
-    // Limpa campos
+    // Limpar campos
     document.getElementById('descricao').value="";
     document.getElementById('valor').value="";
     clienteAtual = "";
