@@ -13,6 +13,12 @@ body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
 input,select,button{padding:6px;margin:5px 0;width:100%;}
 .card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
 button{cursor:pointer;}
+/* 🔹 Ajuste do select de clientes */
+#cliente {
+    display: none;
+    max-height: 200px;   /* altura máxima */
+    overflow-y: auto;    /* habilita rolagem vertical */
+}
 </style>
 </head>
 
@@ -37,7 +43,7 @@ button{cursor:pointer;}
 <option value="fiado">Fiado</option>
 </select>
 
-<select id="cliente" style="display:none;"></select>
+<select id="cliente"></select>
 
 <button onclick="salvar()">Salvar</button>
 
@@ -101,7 +107,7 @@ function salvar(){
 
     if(!descricao || isNaN(valor)) return;
 
-    if(pagamento === "fiado" && (!cliente || cliente === "Nenhum cliente cadastrado")){
+    if(pagamento === "fiado" && (!cliente || cliente === "")){
         alert("Cadastre um cliente primeiro.");
         return;
     }
