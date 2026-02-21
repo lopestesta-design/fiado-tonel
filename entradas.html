@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Entradas - Tonel 333</title>
+
 <style>
 body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
 .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
@@ -11,8 +12,10 @@ body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
 .voltar{text-decoration:none;font-size:22px;color:#5c3a00;}
 input,select,button{padding:6px;margin:5px 0;width:100%;}
 .card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
+button{cursor:pointer;}
 </style>
 </head>
+
 <body>
 
 <div class="topo">
@@ -41,121 +44,139 @@ input,select,button{padding:6px;margin:5px 0;width:100%;}
 <h3>Histórico</h3>
 <div id="listaEntradas"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
 <script>
-// Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
-  authDomain: "tonel-333.firebaseapp.com",
-  projectId: "tonel-333",
-  storageBucket: "tonel-333.firebasestorage.app",
-  messagingSenderId: "1078081349485",
-  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+document.getElementById('data').valueAsDate = new Date();
 
-document.getElementById('data').valueAsDate=new Date();
-
+// Carregar clientes no select
 function carregarClientes(){
-    let clientes=JSON.parse(localStorage.getItem('clientes'))||[];
-    let select=document.getElementById('cliente');
-    select.innerHTML="";
-    if(clientes.length===0){
-        select.innerHTML="<option>Nenhum cliente cadastrado</option>";
+    let clientes = JSON.parse(localStorage.getItem('clientes') || "[]");
+    let select = document.getElementById('cliente');
+    select.innerHTML = "";
+
+    if(clientes.length === 0){
+        let option = document.createElement("option");
+        option.textContent = "Nenhum cliente cadastrado";
+        option.disabled = true;
+        select.appendChild(option);
         return;
     }
-    clientes.forEach(c=>select.innerHTML+=`<option value="${c.nome}">${c.nome}</option>`);
+
+    clientes.forEach(c => {
+        if(c && c.nome){
+            let option = document.createElement("option");
+            option.value = c.nome;
+            option.textContent = c.nome;
+            select.appendChild(option);
+        }
+    });
 }
 
+// Mostrar select de clientes apenas para Fiado
 function verCliente(){
-    let pag=document.getElementById('pagamento').value;
-    let select=document.getElementById('cliente');
-    select.style.display=(pag==="fiado")?"block":"none";
+    let pag = document.getElementById('pagamento').value;
+    let select = document.getElementById('cliente');
+
+    if(pag === "fiado"){
+        carregarClientes();
+        select.style.display = "block";
+    } else {
+        select.style.display = "none";
+    }
 }
 
+// Salvar entrada
 function salvar(){
-    let entradas=JSON.parse(localStorage.getItem('entradas'))||[];
-    let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
+    let entradas = JSON.parse(localStorage.getItem('entradas') || "[]");
+    let fiados = JSON.parse(localStorage.getItem('fiados') || "[]");
 
-    let data=document.getElementById('data').value;
-    let descricao=document.getElementById('descricao').value.trim();
-    let valor=parseFloat(document.getElementById('valor').value);
-    let pagamento=document.getElementById('pagamento').value;
-    let cliente=document.getElementById('cliente').value;
+    let data = document.getElementById('data').value;
+    let descricao = document.getElementById('descricao').value;
+    let valor = parseFloat(document.getElementById('valor').value);
+    let pagamento = document.getElementById('pagamento').value;
+    let cliente = document.getElementById('cliente').value;
 
-    if(!descricao||isNaN(valor)) return alert("Preencha descrição e valor");
+    if(!descricao || isNaN(valor)) return;
 
-    if(pagamento==="fiado"&&(!cliente||cliente==="Nenhum cliente cadastrado")){
-        return alert("Cadastre um cliente primeiro.");
+    if(pagamento === "fiado" && (!cliente || cliente === "Nenhum cliente cadastrado")){
+        alert("Cadastre um cliente primeiro.");
+        return;
     }
 
-    let entrada={data,descricao,valor,pagamento,cliente};
-    entradas.push(entrada);
+    // Adiciona entrada
+    entradas.push({data,descricao,valor,pagamento,cliente});
     localStorage.setItem('entradas',JSON.stringify(entradas));
 
-    // Fiado
-    if(pagamento==="fiado"){
-        let cFiado=fiados.find(f=>f.cliente===cliente);
-        if(!cFiado){ cFiado={cliente,consumos:[],pagamentos:[]}; fiados.push(cFiado);}
-        cFiado.consumos.push({data,valor});
+    // Atualiza Fiado
+    if(pagamento === "fiado"){
+        let clienteFiado = fiados.find(f => f.cliente === cliente);
+
+        if(!clienteFiado){
+            clienteFiado = {cliente,consumos:[],pagamentos:[]};
+            fiados.push(clienteFiado);
+        }
+
+        clienteFiado.consumos.push({data,valor});
         localStorage.setItem('fiados',JSON.stringify(fiados));
     }
 
     listarEntradas();
-    salvarNaNuvem();
+    // Limpar campos
+    document.getElementById('descricao').value="";
+    document.getElementById('valor').value="";
 }
 
+// Listar entradas
 function listarEntradas(){
-    let entradas=JSON.parse(localStorage.getItem('entradas'))||[];
-    let div=document.getElementById('listaEntradas');
+    let entradas = JSON.parse(localStorage.getItem('entradas') || "[]");
+    let div = document.getElementById('listaEntradas');
     div.innerHTML="";
+
     entradas.forEach((e,i)=>{
-        div.innerHTML+=`<div class="card">
-        ${e.data} - ${e.descricao}<br>
-        R$ ${e.valor.toFixed(2)} - ${e.pagamento}
-        ${e.pagamento==="fiado"?" - "+e.cliente:""}<br>
-        <button onclick="editar(${i})">✏</button>
-        <button onclick="excluir(${i})">🗑</button>
+        div.innerHTML+=`
+        <div class="card">
+            ${e.data} - ${e.descricao}<br>
+            R$ ${e.valor.toFixed(2)} - ${e.pagamento} ${e.pagamento==="fiado"?"- "+e.cliente:""}<br>
+            <button onclick="editar(${i})">✏</button>
+            <button onclick="excluir(${i})">🗑</button>
         </div>`;
     });
 }
 
+// Editar entrada
 function editar(i){
-    let entradas=JSON.parse(localStorage.getItem('entradas'))||[];
-    let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
-    let e=entradas[i];
+    let entradas = JSON.parse(localStorage.getItem('entradas') || "[]");
+    let fiados = JSON.parse(localStorage.getItem('fiados') || "[]");
+    let e = entradas[i];
 
-    let novoValor=parseFloat(prompt("Novo valor:",e.valor));
+    let novoValor = parseFloat(prompt("Novo valor:", e.valor));
     if(isNaN(novoValor)) return;
 
-    if(e.pagamento==="fiado"){
-        let f=fiados.find(x=>x.cliente===e.cliente);
+    if(e.pagamento === "fiado"){
+        let f = fiados.find(x => x.cliente === e.cliente);
         if(f){
-            let c=f.consumos.find(x=>x.data===e.data && x.valor===e.valor);
-            if(c) c.valor=novoValor;
+            let c = f.consumos.find(x => x.data===e.data && x.valor===e.valor);
+            if(c) c.valor = novoValor;
             localStorage.setItem('fiados',JSON.stringify(fiados));
         }
     }
 
-    e.valor=novoValor;
+    e.valor = novoValor;
     localStorage.setItem('entradas',JSON.stringify(entradas));
     listarEntradas();
-    salvarNaNuvem();
 }
 
+// Excluir entrada
 function excluir(i){
     if(!confirm("Excluir lançamento?")) return;
-    let entradas=JSON.parse(localStorage.getItem('entradas'))||[];
-    let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
-    let e=entradas[i];
+
+    let entradas = JSON.parse(localStorage.getItem('entradas') || "[]");
+    let fiados = JSON.parse(localStorage.getItem('fiados') || "[]");
+    let e = entradas[i];
 
     if(e.pagamento==="fiado"){
-        let f=fiados.find(x=>x.cliente===e.cliente);
+        let f = fiados.find(x=>x.cliente===e.cliente);
         if(f){
-            f.consumos=f.consumos.filter(x=>!(x.data===e.data && x.valor===e.valor));
+            f.consumos = f.consumos.filter(x => !(x.data===e.data && x.valor===e.valor));
             localStorage.setItem('fiados',JSON.stringify(fiados));
         }
     }
@@ -163,21 +184,9 @@ function excluir(i){
     entradas.splice(i,1);
     localStorage.setItem('entradas',JSON.stringify(entradas));
     listarEntradas();
-    salvarNaNuvem();
 }
 
 listarEntradas();
-
-// 🔥 Sincronização na nuvem
-function salvarNaNuvem(){
-    const dados={
-        clientes: JSON.parse(localStorage.getItem('clientes'))||[],
-        entradas: JSON.parse(localStorage.getItem('entradas'))||[],
-        fiados: JSON.parse(localStorage.getItem('fiados'))||[]
-    };
-    db.collection("backup").doc("entradas").set(dados);
-}
 </script>
-
 </body>
 </html>
