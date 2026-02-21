@@ -57,6 +57,57 @@ body {
     <button onclick="window.location.href='graficos.html'">Gráficos</button>
     <button onclick="window.location.href='cadastro.html'">Cadastro</button>
     <button onclick="window.location.href='caixa.html'">Caixa</button>
+    <button onclick="exportarBackup()">📥 Exportar Backup</button>
+<input type="file" id="importarArquivo" style="display:none" onchange="importarBackup(event)">
+<button onclick="document.getElementById('importarArquivo').click()">📤 Importar Backup</button>
+
+    <script>
+
+function exportarBackup(){
+
+    let dados = {
+        clientes: JSON.parse(localStorage.getItem('clientes')) || [],
+        entradas: JSON.parse(localStorage.getItem('entradas')) || [],
+        fiados: JSON.parse(localStorage.getItem('fiados')) || []
+    };
+
+    let blob = new Blob([JSON.stringify(dados,null,2)], {type:"application/json"});
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "backup-tonel-333.json";
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+function importarBackup(event){
+
+    let arquivo = event.target.files[0];
+    if(!arquivo) return;
+
+    let reader = new FileReader();
+
+    reader.onload = function(e){
+
+        let dados = JSON.parse(e.target.result);
+
+        if(!confirm("Importar backup substituirá todos os dados atuais. Continuar?"))
+            return;
+
+        localStorage.setItem('clientes', JSON.stringify(dados.clientes || []));
+        localStorage.setItem('entradas', JSON.stringify(dados.entradas || []));
+        localStorage.setItem('fiados', JSON.stringify(dados.fiados || []));
+
+        alert("Backup importado com sucesso!");
+        location.reload();
+    };
+
+    reader.readAsText(arquivo);
+}
+
+    </script>
 </div>
 
 </body>
