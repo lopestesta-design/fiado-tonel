@@ -3,24 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fechamento de Caixa - Tonel 333</title>
-
+<title>Caixa - Tonel 333</title>
 <style>
-body { font-family:Arial; padding:20px; background:#fff8dc; color:#5c3a00; }
-.topo { display:flex; justify-content: space-between; align-items:center; margin-bottom:20px; }
-.logo { width:100px; }
-.voltar { font-size:22px; text-decoration:none; color:#5c3a00; }
-
-input { padding:8px; margin-bottom:15px; }
-
-.card {
-    border:2px solid #5c3a00;
-    padding:15px;
-    border-radius:8px;
-    margin-top:10px;
-    background:#fff;
-}
-.total { font-size:18px; font-weight:bold; margin-top:10px; }
+body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
+.topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.logo{width:100px;}
+.voltar{text-decoration:none;font-size:22px;color:#5c3a00;}
+input,button{padding:6px;margin:5px 0;width:100%;}
+.card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
 </style>
 </head>
 <body>
@@ -30,84 +20,90 @@ input { padding:8px; margin-bottom:15px; }
 <img src="logo.png" class="logo">
 </div>
 
-<h2>Fechamento de Caixa Diário</h2>
+<h2>Fechamento de Caixa</h2>
 
-<label>Selecione a Data:</label>
-<input type="date" id="dataCaixa">
+<input type="date" id="data" onchange="listar()">
 
-<button onclick="calcular()">Calcular</button>
+<div id="resumoCaixa"></div>
 
-<div id="resultado"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
+  authDomain: "tonel-333.firebaseapp.com",
+  projectId: "tonel-333",
+  storageBucket: "tonel-333.firebasestorage.app",
+  messagingSenderId: "1078081349485",
+  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
+};
 
-document.getElementById("dataCaixa").value = new Date().toISOString().slice(0,10);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-function calcular(){
-
-let dataSelecionada = document.getElementById("dataCaixa").value;
-
-let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
-let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
-let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-
-let totalVendido = 0;
-let totalRecebido = 0;
-let totalFiado = 0;
-let totalPagoFiado = 0;
-let totalSaidas = 0;
-
-// ENTRADAS
-entradas.forEach(e=>{
-    if(e.data === dataSelecionada){
-        totalVendido += e.valor;
-
-        if(e.pagamento === "fiado"){
-            totalFiado += e.valor;
-        } else {
-            totalRecebido += e.valor;
-        }
-    }
-});
-
-// PAGAMENTOS DE FIADO
-fiados.forEach(f=>{
-    f.pagamentos.forEach(p=>{
-        if(p.data === dataSelecionada){
-            totalPagoFiado += p.valor;
-        }
-    });
-});
-
-// SAÍDAS
-saidas.forEach(s=>{
-    if(s.data === dataSelecionada){
-        totalSaidas += s.valor;
-    }
-});
-
-// SALDO FINAL
-let saldoFinal = (totalRecebido + totalPagoFiado) - totalSaidas;
-
-document.getElementById("resultado").innerHTML = `
-<div class="card">
-
-<div>Total Vendido no Dia: R$ ${totalVendido.toFixed(2)}</div>
-<div>Total Recebido no Dia: R$ ${totalRecebido.toFixed(2)}</div>
-<div>Total Deixado em Fiado: R$ ${totalFiado.toFixed(2)}</div>
-<div>Recebimento de Fiado no Dia: R$ ${totalPagoFiado.toFixed(2)}</div>
-<div>Total de Saídas: R$ ${totalSaidas.toFixed(2)}</div>
-
-<hr>
-
-<div class="total">Saldo Final do Caixa: R$ ${saldoFinal.toFixed(2)}</div>
-
-</div>
-`;
-
+// ================= SINCRONIZAÇÃO =================
+function salvarNaNuvem() {
+  const dados = {
+    clientes: JSON.parse(localStorage.getItem('clientes')) || [],
+    entradas: JSON.parse(localStorage.getItem('entradas')) || [],
+    fiados: JSON.parse(localStorage.getItem('fiados')) || [],
+    saidas: JSON.parse(localStorage.getItem('saidas')) || []
+  };
+  db.collection("backup").doc("dados").set(dados);
 }
 
-</script>
+function carregarDaNuvem() {
+  let caixas = JSON.parse(localStorage.getItem('entradas')) || [];
+  if(caixas.length) return;
+  db.collection("backup").doc("dados").get().then((doc)=>{
+    if(doc.exists){
+      const dados = doc.data();
+      localStorage.setItem('clientes', JSON.stringify(dados.clientes || []));
+      localStorage.setItem('entradas', JSON.stringify(dados.entradas || []));
+      localStorage.setItem('fiados', JSON.stringify(dados.fiados || []));
+      localStorage.setItem('saidas', JSON.stringify(dados.saidas || []));
+    }
+    listar();
+  });
+}
 
+window.onload = function(){
+  document.getElementById('data').valueAsDate = new Date();
+  carregarDaNuvem();
+}
+
+// ================= CAIXA =================
+function listar(){
+    let dataSelecionada = document.getElementById('data').value;
+    let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+    let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+
+    // Entradas do dia
+    let entradasDia = entradas.filter(e=>e.data===dataSelecionada);
+    let fiadosDia = fiados.map(f=>{
+        return f.consumos.filter(c=>c.data===dataSelecionada)
+                         .reduce((s,c)=>s+c.valor,0);
+    }).reduce((a,b)=>a+b,0);
+    let totalEntradas = entradasDia.reduce((s,e)=>s+e.valor,0) + fiadosDia;
+
+    // Saídas do dia
+    let saidasDia = saidas.filter(s=>s.data===dataSelecionada);
+    let totalSaidas = saidasDia.reduce((s,sd)=>s+sd.valor,0);
+
+    let saldo = totalEntradas - totalSaidas;
+
+    let div = document.getElementById('resumoCaixa');
+    div.innerHTML = `
+    <div class="card">
+        <strong>Data:</strong> ${dataSelecionada}<br><br>
+        <strong>Total Entradas (Dinheiro, Cartão e Fiados):</strong> R$ ${totalEntradas.toFixed(2)}<br>
+        <strong>Total Saídas:</strong> R$ ${totalSaidas.toFixed(2)}<br>
+        <strong>Saldo do Dia:</strong> R$ ${saldo.toFixed(2)}
+    </div>
+    `;
+}
+</script>
 </body>
 </html>
