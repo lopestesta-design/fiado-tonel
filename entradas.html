@@ -47,7 +47,7 @@ button{cursor:pointer;}
 <script>
 document.getElementById('data').valueAsDate = new Date();
 
-// Carregar clientes no select
+// Função confiável para carregar clientes no select
 function carregarClientes(){
     let clientes = JSON.parse(localStorage.getItem('clientes') || "[]");
     let select = document.getElementById('cliente');
@@ -74,6 +74,20 @@ function carregarClientes(){
         }
     });
 }
+
+// Mostrar select de clientes apenas para Fiado
+function verCliente(){
+    let pag = document.getElementById('pagamento').value;
+    let select = document.getElementById('cliente');
+
+    if(pag === "fiado"){
+        carregarClientes();
+        select.style.display = "block";
+    } else {
+        select.style.display = "none";
+    }
+}
+
 // Salvar entrada
 function salvar(){
     let entradas = JSON.parse(localStorage.getItem('entradas') || "[]");
@@ -110,7 +124,6 @@ function salvar(){
     }
 
     listarEntradas();
-    // Limpar campos
     document.getElementById('descricao').value="";
     document.getElementById('valor').value="";
 }
@@ -177,8 +190,6 @@ function excluir(i){
 }
 
 listarEntradas();
-    console.log("Clientes no localStorage:", localStorage.getItem('clientes'));
-alert("Clientes no localStorage: " + localStorage.getItem('clientes'));
 </script>
 </body>
 </html>
