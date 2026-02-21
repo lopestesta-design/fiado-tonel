@@ -29,25 +29,25 @@ button{margin:3px;}
 
 <script>
 
-const CHAVE_PIX="SUA_CHAVE_PIX_AQUI";
+const CHAVE_PIX = "14.341.419/0001-11"; // 🔥 COLOQUE SUA CHAVE AQUI
 
 function listar(){
 
-let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
-let clientes=JSON.parse(localStorage.getItem('clientes'))||[];
-let div=document.getElementById('lista');
+let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+let div = document.getElementById('lista');
 div.innerHTML="";
 
 fiados.forEach((f,i)=>{
 
-let totalConsumo=f.consumos.reduce((s,c)=>s+c.valor,0);
-let totalPago=f.pagamentos.reduce((s,p)=>s+p.valor,0);
-let saldo=totalConsumo-totalPago;
-let cliente=clientes.find(c=>c.nome===f.cliente);
+let totalConsumo = (f.consumos || []).reduce((s,c)=>s+c.valor,0);
+let totalPago = (f.pagamentos || []).reduce((s,p)=>s+p.valor,0);
+let saldo = totalConsumo - totalPago;
+let cliente = clientes.find(c=>c.nome===f.cliente);
 
 let html=`<div class="card"><strong>${f.cliente}</strong><br><br>`;
 
-f.consumos.forEach((c,ci)=>{
+(f.consumos || []).forEach((c,ci)=>{
 html+=`${c.data} - R$ ${c.valor.toFixed(2)}
 <button onclick="editarConsumo(${i},${ci})">✏</button>
 <button onclick="excluirConsumo(${i},${ci})">🗑</button><br>`;
@@ -104,10 +104,10 @@ alert("Pix copiado!");
 function whats(tel,nome,saldo){
 let msg=`Olá ${nome}!
 
-Saldo atual: R$ ${saldo.toFixed(2)}
+Seu saldo atual é R$ ${saldo.toFixed(2)}.
 
 Chave Pix:
-${14.341.419/0001-11}
+${11341419000111}
 
 Tonel 333 🍺`;
 
