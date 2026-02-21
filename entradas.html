@@ -51,7 +51,11 @@ document.getElementById('data').valueAsDate = new Date();
 function carregarClientes(){
     let clientes = JSON.parse(localStorage.getItem('clientes') || "[]");
     let select = document.getElementById('cliente');
-    select.innerHTML = "";
+    
+    // Limpa o select
+    while(select.firstChild){
+        select.removeChild(select.firstChild);
+    }
 
     if(clientes.length === 0){
         let option = document.createElement("option");
@@ -70,20 +74,6 @@ function carregarClientes(){
         }
     });
 }
-
-// Mostrar select de clientes apenas para Fiado
-function verCliente(){
-    let pag = document.getElementById('pagamento').value;
-    let select = document.getElementById('cliente');
-
-    if(pag === "fiado"){
-        carregarClientes();
-        select.style.display = "block";
-    } else {
-        select.style.display = "none";
-    }
-}
-
 // Salvar entrada
 function salvar(){
     let entradas = JSON.parse(localStorage.getItem('entradas') || "[]");
