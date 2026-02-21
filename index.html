@@ -65,7 +65,6 @@ body {
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
-
 const firebaseConfig = {
   apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
   authDomain: "tonel-333.firebaseapp.com",
@@ -78,7 +77,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-
 // ================= BACKUP LOCAL =================
 
 function exportarBackup(){
@@ -87,7 +85,6 @@ function exportarBackup(){
         entradas: JSON.parse(localStorage.getItem('entradas')) || [],
         fiados: JSON.parse(localStorage.getItem('fiados')) || []
     };
-
     let blob = new Blob([JSON.stringify(dados,null,2)], {type:"application/json"});
     let url = URL.createObjectURL(blob);
 
@@ -95,20 +92,16 @@ function exportarBackup(){
     a.href = url;
     a.download = "backup-tonel-333.json";
     a.click();
-
     URL.revokeObjectURL(url);
 }
 
 function importarBackup(event){
     let arquivo = event.target.files[0];
     if(!arquivo) return;
-
     let reader = new FileReader();
     reader.onload = function(e){
         let dados = JSON.parse(e.target.result);
-
-        if(!confirm("Importar backup substituirá todos os dados atuais. Continuar?"))
-            return;
+        if(!confirm("Importar backup substituirá todos os dados atuais. Continuar?")) return;
 
         localStorage.setItem('clientes', JSON.stringify(dados.clientes || []));
         localStorage.setItem('entradas', JSON.stringify(dados.entradas || []));
@@ -121,7 +114,6 @@ function importarBackup(event){
     reader.readAsText(arquivo);
 }
 
-
 // ================= SINCRONIZAÇÃO AUTOMÁTICA =================
 
 function salvarNaNuvem() {
@@ -130,7 +122,6 @@ function salvarNaNuvem() {
     entradas: JSON.parse(localStorage.getItem('entradas')) || [],
     fiados: JSON.parse(localStorage.getItem('fiados')) || []
   };
-
   db.collection("backup").doc("dados").set(dados);
 }
 
@@ -152,26 +143,6 @@ window.onload = carregarDaNuvem;
 setInterval(salvarNaNuvem, 5000);
 
 </script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
-  authDomain: "tonel-333.firebaseapp.com",
-  projectId: "tonel-333",
-  storageBucket: "tonel-333.firebasestorage.app",
-  messagingSenderId: "1078081349485",
-  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// Teste rápido
-db.collection("backup").doc("teste").set({mensagem:"funcionou!"}).then(()=>{
-  alert("Teste de Firestore OK!");
-});
-</script>
 </body>
 </html>
