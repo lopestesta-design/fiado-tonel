@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fiado - Tonel 333</title>
-
 <style>
 body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
 .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
@@ -15,7 +14,6 @@ button{margin:3px;}
 .pix{background:#eee;padding:5px;border-radius:4px;margin-top:5px;}
 </style>
 </head>
-
 <body>
 
 <div class="topo">
@@ -27,91 +25,122 @@ button{margin:3px;}
 
 <div id="lista"></div>
 
-<script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-const CHAVE_PIX = "14.341.419/0001-11"; // 🔥 COLOQUE SUA CHAVE AQUI
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
+  authDomain: "tonel-333.firebaseapp.com",
+  projectId: "tonel-333",
+  storageBucket: "tonel-333.firebasestorage.app",
+  messagingSenderId: "1078081349485",
+  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ================= SINCRONIZAÇÃO =================
+function salvarNaNuvem() {
+  const dados = {
+    clientes: JSON.parse(localStorage.getItem('clientes')) || [],
+    entradas: JSON.parse(localStorage.getItem('entradas')) || [],
+    fiados: JSON.parse(localStorage.getItem('fiados')) || []
+  };
+  db.collection("backup").doc("dados").set(dados);
+}
+
+function carregarDaNuvem() {
+  let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+  let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+  if(clientes.length || fiados.length) return;
+
+  db.collection("backup").doc("dados").get().then((doc) => {
+    if (doc.exists) {
+      const dados = doc.data();
+      localStorage.setItem('clientes', JSON.stringify(dados.clientes || []));
+      localStorage.setItem('fiados', JSON.stringify(dados.fiados || []));
+    }
+  });
+}
+
+window.onload = carregarDaNuvem;
+
+// ================= FIADO =================
+const CHAVE_PIX="SUA_CHAVE_PIX_AQUI";
 
 function listar(){
+    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+    let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+    let div = document.getElementById('lista');
+    div.innerHTML="";
 
-let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-let div = document.getElementById('lista');
-div.innerHTML="";
+    fiados.forEach((f,i)=>{
+        let totalConsumo = f.consumos.reduce((s,c)=>s+c.valor,0);
+        let totalPago = f.pagamentos.reduce((s,p)=>s+p.valor,0);
+        let saldo = totalConsumo - totalPago;
+        let cliente = clientes.find(c=>c.nome===f.cliente);
 
-fiados.forEach((f,i)=>{
+        let html=`<div class="card"><strong>${f.cliente}</strong><br><br>`;
+        f.consumos.forEach((c,ci)=>{
+            html+=`${c.data} - R$ ${c.valor.toFixed(2)}
+            <button onclick="editarConsumo(${i},${ci})">✏</button>
+            <button onclick="excluirConsumo(${i},${ci})">🗑</button><br>`;
+        });
 
-let totalConsumo = (f.consumos || []).reduce((s,c)=>s+c.valor,0);
-let totalPago = (f.pagamentos || []).reduce((s,p)=>s+p.valor,0);
-let saldo = totalConsumo - totalPago;
-let cliente = clientes.find(c=>c.nome===f.cliente);
+        html+=`<br><strong>Saldo: R$ ${saldo.toFixed(2)}</strong><br>
+        <button onclick="pagar(${i})">Registrar Pagamento</button>
+        <button onclick="whats('${cliente?.telefone||''}','${f.cliente}',${saldo})">WhatsApp</button>
 
-let html=`<div class="card"><strong>${f.cliente}</strong><br><br>`;
+        <div class="pix">
+        Chave Pix:<br>${CHAVE_PIX}<br>
+        <button onclick="copiar()">Copiar Pix</button>
+        </div>
+        </div>`;
 
-(f.consumos || []).forEach((c,ci)=>{
-html+=`${c.data} - R$ ${c.valor.toFixed(2)}
-<button onclick="editarConsumo(${i},${ci})">✏</button>
-<button onclick="excluirConsumo(${i},${ci})">🗑</button><br>`;
-});
-
-html+=`<br><strong>Saldo: R$ ${saldo.toFixed(2)}</strong><br>
-<button onclick="pagar(${i})">Registrar Pagamento</button>
-<button onclick="whats('${cliente?.telefone||''}','${f.cliente}',${saldo})">WhatsApp</button>
-
-<div class="pix">
-Chave Pix:<br>${CHAVE_PIX}<br>
-<button onclick="copiar()">Copiar Pix</button>
-</div>
-</div>`;
-
-div.innerHTML+=html;
-
-});
-
+        div.innerHTML+=html;
+    });
 }
 
 function editarConsumo(i,ci){
-let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
-let novo=parseFloat(prompt("Novo valor:",fiados[i].consumos[ci].valor));
-if(isNaN(novo))return;
-fiados[i].consumos[ci].valor=novo;
-localStorage.setItem('fiados',JSON.stringify(fiados));
-listar();
+    let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
+    let novo=parseFloat(prompt("Novo valor:",fiados[i].consumos[ci].valor));
+    if(isNaN(novo)) return;
+    fiados[i].consumos[ci].valor=novo;
+    localStorage.setItem('fiados',JSON.stringify(fiados));
+    salvarNaNuvem();
+    listar();
 }
 
 function excluirConsumo(i,ci){
-if(!confirm("Excluir consumo?"))return;
-let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
-fiados[i].consumos.splice(ci,1);
-localStorage.setItem('fiados',JSON.stringify(fiados));
-listar();
+    if(!confirm("Excluir consumo?")) return;
+    let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
+    fiados[i].consumos.splice(ci,1);
+    localStorage.setItem('fiados',JSON.stringify(fiados));
+    salvarNaNuvem();
+    listar();
 }
 
 function pagar(i){
-let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
-let valor=parseFloat(prompt("Valor pago:"));
-if(isNaN(valor))return;
-let hoje=new Date().toISOString().slice(0,10);
-fiados[i].pagamentos.push({data:hoje,valor});
-localStorage.setItem('fiados',JSON.stringify(fiados));
-listar();
+    let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
+    let valor=parseFloat(prompt("Valor pago:"));
+    if(isNaN(valor)) return;
+    let hoje = new Date().toISOString().slice(0,10);
+    fiados[i].pagamentos.push({data:hoje,valor});
+    localStorage.setItem('fiados',JSON.stringify(fiados));
+    salvarNaNuvem();
+    listar();
 }
 
 function copiar(){
-navigator.clipboard.writeText(CHAVE_PIX);
-alert("Pix copiado!");
+    navigator.clipboard.writeText(CHAVE_PIX);
+    alert("Pix copiado!");
 }
 
 function whats(tel,nome,saldo){
-let msg=`Olá ${nome}!
-
-Seu saldo atual é R$ ${saldo.toFixed(2)}.
-
-Chave Pix:
-${11341419000111}
-
-Tonel 333 🍺`;
-
-window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
+    let msg=`Olá ${nome}!\n\nÚltimo saldo: R$ ${saldo.toFixed(2)}\nChave Pix: ${CHAVE_PIX}\n\nTonel 333 🍺`;
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 }
 
 listar();
