@@ -3,55 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resumo Financeiro - Tonel 333</title>
-<script src="app.js"></script>
+<title>Resumo - Tonel 333</title>
 <style>
-body {
-    font-family: Arial,sans-serif;
-    background: #fff8dc;
-    color: #5c3a00;
-    padding: 20px;
-}
-.topo {
-    display:flex;
-    justify-content: flex-end;
-    align-items:center;
-    margin-bottom:20px;
-}
-.topo img { width:120px; }
-.voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
-h2 { margin-top:0; margin-bottom:20px; }
-.resumo { font-size:18px; line-height:2; }
+body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
+.topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.logo{width:100px;}
+.voltar{text-decoration:none;font-size:22px;color:#5c3a00;}
+.card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
 </style>
 </head>
 <body>
 
 <div class="topo">
-    <a href="index.html" class="voltar">←</a>
-    <img src="logo.png" alt="Tonel 333">
+<a href="index.html" class="voltar">←</a>
+<img src="logo.png" class="logo">
 </div>
 
 <h2>Resumo Financeiro</h2>
 
-<div class="resumo" id="resumoTotais">
-    <!-- Totais serão inseridos aqui -->
-</div>
+<div id="resumo"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
-function mostrarResumoPagina(){
-    let res = calcularTotais();
-    let div = document.getElementById('resumoTotais');
-    div.innerHTML = `
-        <div><strong>Total de Entradas:</strong> R$ ${res.totalEntradas.toFixed(2)}</div>
-        <div><strong>Total de Saídas:</strong> R$ ${res.totalSaidas.toFixed(2)}</div>
-        <div><strong>Total de Fiado:</strong> R$ ${res.totalFiado.toFixed(2)}</div>
-        <div><strong>Saldo:</strong> R$ ${res.saldo.toFixed(2)}</div>
-    `;
+const firebaseConfig = {
+  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
+  authDomain: "tonel-333.firebaseapp.com",
+  projectId: "tonel-333",
+  storageBucket: "tonel-333.firebasestorage.app",
+  messagingSenderId: "1078081349485",
+  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ================= SINCRONIZAÇÃO =================
+function salvarNaNuvem() {
+  const dados = {
+    clientes: JSON.parse(localStorage.getItem('clientes')) || [],
+    entradas: JSON.parse(localStorage.getItem('entradas')) || [],
+    fiados: JSON.parse(localStorage.getItem('fiados')) || [],
+    saidas: JSON.parse(localStorage.getItem('saidas')) || []
+  };
+  db.collection("backup").doc("dados").set(dados);
 }
 
-// Atualiza automaticamente ao carregar
-mostrarResumoPagina();
-</script>
+function carregarDaNuvem() {
+  let resumo = JSON.parse(localStorage.getItem('entradas')) || [];
+  if(resumo.length) return;
+  db.collection("backup").doc("dados").get().then((doc) => {
+    if(doc.exists){
+      const dados = doc.data();
+      localStorage.setItem('entradas', JSON.stringify(dados.entradas || []));
+      localStorage.setItem('saidas', JSON.stringify(dados.saidas || []));
+      localStorage.setItem('fiados', JSON.stringify(dados.fiados || []));
+      localStorage.setItem('clientes', JSON.stringify(dados.clientes || []));
+    }
+    listar();
+  });
+}
 
+window.onload = carregarDaNuvem;
+
+// ================= RESUMO =================
+function listar(){
+    let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+    let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+
+    let totalEntradas = entradas.reduce((s,e)=>s+e.valor,0) + fiados.reduce((s,f)=>s+f.consumos.reduce((a,c)=>a+c.valor,0),0);
+    let totalSaidas = saidas.reduce((s,sd)=>s+sd.valor,0);
+    let saldo = totalEntradas - totalSaidas;
+
+    let div = document.getElementById('resumo');
+    div.innerHTML = `
+    <div class="card">
+        <strong>Total Entradas:</strong> R$ ${totalEntradas.toFixed(2)}<br>
+        <strong>Total Saídas:</strong> R$ ${totalSaidas.toFixed(2)}<br>
+        <strong>Saldo Atual:</strong> R$ ${saldo.toFixed(2)}
+    </div>
+    `;
+}
+</script>
 </body>
 </html>
