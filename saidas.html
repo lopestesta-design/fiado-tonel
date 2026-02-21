@@ -4,73 +4,131 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Saídas - Tonel 333</title>
-<script src="app.js"></script>
 <style>
-body { font-family: Arial,sans-serif; padding:20px; background:#fff8dc; color:#5c3a00; }
-.topo { display:flex; justify-content: flex-end; align-items:center; margin-bottom:20px; }
-.topo img { width:120px; }
-.voltar { font-size:24px; text-decoration:none; color:#5c3a00; margin-right:auto; }
-label { display:block; margin-top:10px; }
-input, select { padding:5px; margin-top:5px; width:100%; max-width:300px; }
-button { margin-top:10px; padding:10px; font-weight:bold; cursor:pointer; }
-.listaSaidas { margin-top:20px; }
-.listaSaidas div { margin-bottom:10px; padding:8px; border:1px solid #5c3a00; border-radius:6px; display:flex; justify-content: space-between; align-items:center; }
-.listaSaidas button { padding:5px; font-size:14px; cursor:pointer; }
+body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
+.topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.logo{width:100px;}
+.voltar{text-decoration:none;font-size:22px;color:#5c3a00;}
+input,button{padding:6px;margin:5px 0;width:100%;}
+.card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
 </style>
 </head>
 <body>
 
 <div class="topo">
-  <a href="index.html" class="voltar">←</a>
-  <img src="logo.png" alt="Tonel 333">
+<a href="index.html" class="voltar">←</a>
+<img src="logo.png" class="logo">
 </div>
 
 <h2>Registrar Saída</h2>
-<form id="formSaida">
-  <label>Descrição:</label>
-  <input type="text" id="descricaoSaida" required>
 
-  <label>Valor:</label>
-  <input type="number" id="valorSaida" step="0.01" required>
+<input type="date" id="data">
+<input type="text" id="descricao" placeholder="Descrição">
+<input type="number" id="valor" placeholder="Valor">
+<button onclick="salvar()">Salvar Saída</button>
 
-  <label>Data:</label>
-  <input type="date" id="dataSaida">
+<h3>Histórico de Saídas</h3>
+<div id="listaSaidas"></div>
 
-  <button type="submit">Registrar</button>
-</form>
-
-<h3>Registros de Saídas</h3>
-<div class="listaSaidas" id="listaSaidas"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
-document.getElementById('dataSaida').value = new Date().toISOString().slice(0,10);
+const firebaseConfig = {
+  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
+  authDomain: "tonel-333.firebaseapp.com",
+  projectId: "tonel-333",
+  storageBucket: "tonel-333.firebasestorage.app",
+  messagingSenderId: "1078081349485",
+  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
+};
 
-// Listar saídas
-function listarSaidas(){
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ================= SINCRONIZAÇÃO =================
+function salvarNaNuvem() {
+  const dados = {
+    clientes: JSON.parse(localStorage.getItem('clientes')) || [],
+    entradas: JSON.parse(localStorage.getItem('entradas')) || [],
+    fiados: JSON.parse(localStorage.getItem('fiados')) || [],
+    saidas: JSON.parse(localStorage.getItem('saidas')) || []
+  };
+  db.collection("backup").doc("dados").set(dados);
+}
+
+function carregarDaNuvem() {
   let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
-  let div = document.getElementById('listaSaidas');
-  div.innerHTML = '';
-  saidas.forEach((s,i)=>{
-    let sDiv = document.createElement('div');
-    sDiv.textContent = `${s.data} - ${s.descricao} - R$ ${s.valor.toFixed(2)}`;
-    div.appendChild(sDiv);
+  if(saidas.length) return;
+  db.collection("backup").doc("dados").get().then((doc) => {
+    if(doc.exists){
+      const dados = doc.data();
+      localStorage.setItem('saidas', JSON.stringify(dados.saidas || []));
+    }
+    listar();
   });
 }
 
-listarSaidas();
+window.onload = carregarDaNuvem;
 
-document.getElementById('formSaida').addEventListener('submit', function(e){
-  e.preventDefault();
-  let descricao = document.getElementById('descricaoSaida').value;
-  let valor = parseFloat(document.getElementById('valorSaida').value);
-  let data = document.getElementById('dataSaida').value;
-  salvarSaida(valor, descricao, data);
-  alert('Saída registrada!');
-  this.reset();
-  document.getElementById('dataSaida').value = new Date().toISOString().slice(0,10);
-  listarSaidas();
-});
+// ================= SAÍDAS =================
+document.getElementById('data').valueAsDate = new Date();
+
+function salvar(){
+    let data = document.getElementById('data').value;
+    let descricao = document.getElementById('descricao').value.trim();
+    let valor = parseFloat(document.getElementById('valor').value);
+    if(!descricao || isNaN(valor)) return;
+
+    let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+    saidas.push({data, descricao, valor});
+    localStorage.setItem('saidas', JSON.stringify(saidas));
+    salvarNaNuvem();
+
+    document.getElementById('descricao').value = "";
+    document.getElementById('valor').value = "";
+    listar();
+}
+
+function listar(){
+    let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+    let div = document.getElementById('listaSaidas');
+    div.innerHTML="";
+    saidas.forEach((s,i)=>{
+        div.innerHTML+=`
+        <div class="card">
+            ${s.data} - ${s.descricao}<br>
+            R$ ${s.valor.toFixed(2)}<br>
+            <button onclick="editar(${i})">✏ Editar</button>
+            <button onclick="excluir(${i})">🗑 Excluir</button>
+        </div>
+        `;
+    });
+}
+
+function editar(i){
+    let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+    let s = saidas[i];
+    let novoDesc = prompt("Descrição:", s.descricao);
+    if(!novoDesc) return;
+    let novoValor = parseFloat(prompt("Valor:", s.valor));
+    if(isNaN(novoValor)) return;
+    s.descricao = novoDesc;
+    s.valor = novoValor;
+    localStorage.setItem('saidas', JSON.stringify(saidas));
+    salvarNaNuvem();
+    listar();
+}
+
+function excluir(i){
+    if(!confirm("Excluir saída?")) return;
+    let saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+    saidas.splice(i,1);
+    localStorage.setItem('saidas', JSON.stringify(saidas));
+    salvarNaNuvem();
+    listar();
+}
+
 </script>
-
 </body>
 </html>
