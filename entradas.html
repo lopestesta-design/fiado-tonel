@@ -29,10 +29,11 @@ body {
 }
 
 input, button {
-    padding: 6px;
+    padding: 10px;
     margin: 5px 0;
     font-size: 16px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .card {
@@ -50,7 +51,7 @@ input, button {
 }
 
 .dropdown-toggle {
-    padding: 6px;
+    padding: 10px;
     border: 1px solid #5c3a00;
     background: #fff8dc;
     border-radius: 4px;
@@ -63,22 +64,27 @@ input, button {
     top: 100%;
     left: 0;
     right: 0;
-    max-height: 50vh; /* metade da tela para rolagem */
+    max-height: 200px; /* altura fixa para rolagem */
     border: 1px solid #5c3a00;
     background: #fff;
-    overflow-y: scroll; /* força scroll real */
+    overflow-y: auto; /* rolagem real */
     display: none;
     z-index: 1000;
 }
 
 .dropdown-list div {
-    padding: 6px;
+    padding: 10px;
     cursor: pointer;
-    white-space: nowrap;
 }
 
 .dropdown-list div:hover {
     background: #ffe680;
+}
+
+/* Aumentar campo de pagamento */
+#pagamento {
+    font-size: 16px;
+    padding: 10px;
 }
 </style>
 </head>
