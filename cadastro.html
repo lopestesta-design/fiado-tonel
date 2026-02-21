@@ -11,6 +11,7 @@ body{font-family:Arial;padding:20px;background:#fff8dc;color:#5c3a00;}
 .voltar{text-decoration:none;font-size:22px;color:#5c3a00;}
 input,button{padding:6px;margin:5px 0;width:100%;}
 .card{border:1px solid #5c3a00;padding:10px;margin:10px 0;border-radius:6px;background:#fff;}
+button{cursor:pointer;}
 </style>
 </head>
 <body>
@@ -22,60 +23,123 @@ input,button{padding:6px;margin:5px 0;width:100%;}
 
 <h2>Cadastro de Clientes</h2>
 
-<input type="text" id="nome" placeholder="Nome">
-<input type="text" id="telefone" placeholder="Telefone">
-<button onclick="salvarCliente()">Salvar</button>
+<input type="text" id="nome" placeholder="Nome do Cliente">
+<input type="text" id="telefone" placeholder="Telefone (WhatsApp)">
+
+<button onclick="salvarCliente()">Salvar Cliente</button>
 
 <h3>Clientes Cadastrados</h3>
 <div id="listaClientes"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 <script>
+// Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
+  authDomain: "tonel-333.firebaseapp.com",
+  projectId: "tonel-333",
+  storageBucket: "tonel-333.firebasestorage.app",
+  messagingSenderId: "1078081349485",
+  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Salvar cliente
+function salvarCliente(){
+    let nome=document.getElementById('nome').value.trim();
+    let telefone=document.getElementById('telefone').value.trim();
+
+    if(!nome) { alert("Digite o nome do cliente!"); return; }
+
+    let clientes=JSON.parse(localStorage.getItem('clientes'))||[];
+
+    let existente=clientes.find(c=>c.nome.toLowerCase()===nome.toLowerCase());
+    if(existente){
+        // Atualizar telefone
+        existente.telefone=telefone;
+    } else {
+        clientes.push({nome,telefone});
+    }
+
+    localStorage.setItem('clientes',JSON.stringify(clientes));
+    salvarNaNuvem();
+    listarClientes();
+
+    document.getElementById('nome').value="";
+    document.getElementById('telefone').value="";
+}
+
+// Listar clientes
 function listarClientes(){
     let clientes=JSON.parse(localStorage.getItem('clientes'))||[];
     let div=document.getElementById('listaClientes');
     div.innerHTML="";
+
     clientes.forEach((c,i)=>{
-        div.innerHTML+=`<div class="card">
-        ${c.nome} - ${c.telefone}<br>
-        <button onclick="editarCliente(${i})">✏</button>
-        <button onclick="excluirCliente(${i})">🗑</button>
+        div.innerHTML+=`
+        <div class="card">
+            <strong>${c.nome}</strong><br>
+            Telefone: ${c.telefone || ""}<br>
+            <button onclick="editarCliente(${i})">✏ Editar</button>
+            <button onclick="excluirCliente(${i})">🗑 Excluir</button>
         </div>`;
     });
 }
 
-function salvarCliente(){
-    let nome=document.getElementById('nome').value.trim();
-    let tel=document.getElementById('telefone').value.trim();
-    if(!nome) return alert("Digite o nome");
-    let clientes=JSON.parse(localStorage.getItem('clientes'))||[];
-    clientes.push({nome,telefone:tel});
-    localStorage.setItem('clientes',JSON.stringify(clientes));
-    document.getElementById('nome').value="";
-    document.getElementById('telefone').value="";
-    listarClientes();
-}
-
+// Editar cliente
 function editarCliente(i){
     let clientes=JSON.parse(localStorage.getItem('clientes'))||[];
     let c=clientes[i];
+
     let novoNome=prompt("Nome:",c.nome);
     if(!novoNome) return;
-    let novoTel=prompt("Telefone:",c.telefone);
-    clientes[i]={nome:novoNome,telefone:novoTel};
+
+    let novoTelefone=prompt("Telefone:",c.telefone||"");
+
+    c.nome=novoNome.trim();
+    c.telefone=novoTelefone.trim();
+
     localStorage.setItem('clientes',JSON.stringify(clientes));
+    salvarNaNuvem();
     listarClientes();
 }
 
+// Excluir cliente
 function excluirCliente(i){
     if(!confirm("Excluir cliente?")) return;
     let clientes=JSON.parse(localStorage.getItem('clientes'))||[];
     clientes.splice(i,1);
     localStorage.setItem('clientes',JSON.stringify(clientes));
+    salvarNaNuvem();
     listarClientes();
 }
 
-listarClientes();
-</script>
+// 🔹 Firebase - salvar automaticamente
+function salvarNaNuvem(){
+    const dados={
+        clientes: JSON.parse(localStorage.getItem('clientes'))||[],
+        entradas: JSON.parse(localStorage.getItem('entradas'))||[],
+        fiados: JSON.parse(localStorage.getItem('fiados'))||[]
+    };
+    db.collection("backup").doc("clientes").set(dados);
+}
 
+// Carregar clientes na inicialização
+function carregarDaNuvem(){
+    db.collection("backup").doc("clientes").get().then((doc)=>{
+        if(doc.exists){
+            const dados=doc.data();
+            localStorage.setItem('clientes',JSON.stringify(dados.clientes||[]));
+        }
+        listarClientes();
+    });
+}
+
+carregarDaNuvem();
+
+</script>
 </body>
 </html>
