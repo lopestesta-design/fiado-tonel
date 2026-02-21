@@ -78,7 +78,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // ================= BACKUP LOCAL =================
-
 function exportarBackup(){
     let dados = {
         clientes: JSON.parse(localStorage.getItem('clientes')) || [],
@@ -115,7 +114,6 @@ function importarBackup(event){
 }
 
 // ================= SINCRONIZAÇÃO AUTOMÁTICA =================
-
 function salvarNaNuvem() {
   const dados = {
     clientes: JSON.parse(localStorage.getItem('clientes')) || [],
@@ -126,6 +124,13 @@ function salvarNaNuvem() {
 }
 
 function carregarDaNuvem() {
+  let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+  let entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+  let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
+
+  // Se já houver dados, não sobrescreve
+  if(clientes.length || entradas.length || fiados.length) return;
+
   db.collection("backup").doc("dados").get().then((doc) => {
     if (doc.exists) {
       const dados = doc.data();
