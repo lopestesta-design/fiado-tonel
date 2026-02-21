@@ -25,64 +25,24 @@ button{margin:3px;}
 
 <div id="lista"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
-  authDomain: "tonel-333.firebaseapp.com",
-  projectId: "tonel-333",
-  storageBucket: "tonel-333.firebasestorage.app",
-  messagingSenderId: "1078081349485",
-  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
-};
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// ================= SINCRONIZAÇÃO =================
-function salvarNaNuvem() {
-  const dados = {
-    clientes: JSON.parse(localStorage.getItem('clientes')) || [],
-    entradas: JSON.parse(localStorage.getItem('entradas')) || [],
-    fiados: JSON.parse(localStorage.getItem('fiados')) || []
-  };
-  db.collection("backup").doc("dados").set(dados);
-}
-
-function carregarDaNuvem() {
-  let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-  let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-  if(clientes.length || fiados.length) return;
-
-  db.collection("backup").doc("dados").get().then((doc) => {
-    if (doc.exists) {
-      const dados = doc.data();
-      localStorage.setItem('clientes', JSON.stringify(dados.clientes || []));
-      localStorage.setItem('fiados', JSON.stringify(dados.fiados || []));
-    }
-  });
-}
-
-window.onload = carregarDaNuvem;
-
-// ================= FIADO =================
 const CHAVE_PIX="SUA_CHAVE_PIX_AQUI";
 
 function listar(){
-    let fiados = JSON.parse(localStorage.getItem('fiados')) || [];
-    let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-    let div = document.getElementById('lista');
+    let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
+    let clientes=JSON.parse(localStorage.getItem('clientes'))||[];
+    let div=document.getElementById('lista');
     div.innerHTML="";
 
     fiados.forEach((f,i)=>{
-        let totalConsumo = f.consumos.reduce((s,c)=>s+c.valor,0);
-        let totalPago = f.pagamentos.reduce((s,p)=>s+p.valor,0);
-        let saldo = totalConsumo - totalPago;
-        let cliente = clientes.find(c=>c.nome===f.cliente);
+        let totalConsumo=f.consumos.reduce((s,c)=>s+c.valor,0);
+        let totalPago=f.pagamentos.reduce((s,p)=>s+p.valor,0);
+        let saldo=totalConsumo-totalPago;
+        let cliente=clientes.find(c=>c.nome===f.cliente);
 
         let html=`<div class="card"><strong>${f.cliente}</strong><br><br>`;
+
         f.consumos.forEach((c,ci)=>{
             html+=`${c.data} - R$ ${c.valor.toFixed(2)}
             <button onclick="editarConsumo(${i},${ci})">✏</button>
@@ -94,7 +54,7 @@ function listar(){
         <button onclick="whats('${cliente?.telefone||''}','${f.cliente}',${saldo})">WhatsApp</button>
 
         <div class="pix">
-        Chave Pix:<br>${CHAVE_PIX}<br>
+        Chave Pix:<br>${lopestesta@gmail.com}<br>
         <button onclick="copiar()">Copiar Pix</button>
         </div>
         </div>`;
@@ -109,8 +69,8 @@ function editarConsumo(i,ci){
     if(isNaN(novo)) return;
     fiados[i].consumos[ci].valor=novo;
     localStorage.setItem('fiados',JSON.stringify(fiados));
-    salvarNaNuvem();
     listar();
+    salvarNaNuvem();
 }
 
 function excluirConsumo(i,ci){
@@ -118,19 +78,19 @@ function excluirConsumo(i,ci){
     let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
     fiados[i].consumos.splice(ci,1);
     localStorage.setItem('fiados',JSON.stringify(fiados));
-    salvarNaNuvem();
     listar();
+    salvarNaNuvem();
 }
 
 function pagar(i){
     let fiados=JSON.parse(localStorage.getItem('fiados'))||[];
     let valor=parseFloat(prompt("Valor pago:"));
     if(isNaN(valor)) return;
-    let hoje = new Date().toISOString().slice(0,10);
+    let hoje=new Date().toISOString().slice(0,10);
     fiados[i].pagamentos.push({data:hoje,valor});
     localStorage.setItem('fiados',JSON.stringify(fiados));
-    salvarNaNuvem();
     listar();
+    salvarNaNuvem();
 }
 
 function copiar(){
@@ -139,11 +99,37 @@ function copiar(){
 }
 
 function whats(tel,nome,saldo){
-    let msg=`Olá ${nome}!\n\nÚltimo saldo: R$ ${saldo.toFixed(2)}\nChave Pix: ${CHAVE_PIX}\n\nTonel 333 🍺`;
+    let msg=`Olá ${nome}!\n\nÚltimo consumo registrado.\nSaldo atual: R$ ${saldo.toFixed(2)}\n\nChave Pix: ${CHAVE_PIX}\nTonel 333 🍺`;
     window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`);
 }
 
+// 🔥 Sincronização na nuvem Firebase
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC1Jqc7Jjp-NcVUaxglEhmDNklndUqaF0Y",
+  authDomain: "tonel-333.firebaseapp.com",
+  projectId: "tonel-333",
+  storageBucket: "tonel-333.firebasestorage.app",
+  messagingSenderId: "1078081349485",
+  appId: "1:1078081349485:web:10bcd104cc08b2bafcdc64"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function salvarNaNuvem(){
+    const dados={
+        clientes: JSON.parse(localStorage.getItem('clientes'))||[],
+        entradas: JSON.parse(localStorage.getItem('entradas'))||[],
+        fiados: JSON.parse(localStorage.getItem('fiados'))||[]
+    };
+    db.collection("backup").doc("fiados").set(dados);
+}
+
 listar();
+</script>
 
 </script>
 </body>
